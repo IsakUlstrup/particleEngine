@@ -1,6 +1,7 @@
 module ParticleEngine.Vector2 exposing
     ( Vector2
     , add
+    , divide
     , new
     , scale
     , subtract
@@ -37,3 +38,10 @@ subtract sub vector =
 scale : Float -> Vector2 -> Vector2
 scale amount vector =
     { vector | x = vector.x * amount, y = vector.y * amount }
+
+
+{-| Divide components by given value
+-}
+divide : Float -> Vector2 -> Vector2
+divide value vector =
+    { vector | x = vector.x / value, y = vector.y / value }

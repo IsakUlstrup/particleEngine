@@ -27,11 +27,17 @@ new position mass =
 -}
 step : Vector2 -> Float -> Particle -> Particle
 step force dt particle =
+    let
+        acceleration =
+            force
+                |> Vector2.divide particle.mass
+                |> Vector2.scale (dt ^ 2)
+    in
     { particle
         | oldPosition = particle.position
         , position =
             particle.position
                 |> Vector2.scale 2
                 |> Vector2.subtract particle.oldPosition
-                |> Vector2.add (Vector2.scale (dt ^ 2) force)
+                |> Vector2.add acceleration
     }
