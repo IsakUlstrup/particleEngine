@@ -1,8 +1,12 @@
 module Main exposing (Model, Msg, main)
 
 import Browser
-import Html exposing (Html, button, h3, main_, p, text)
-import Html.Events exposing (onClick)
+import Html exposing (Html, main_)
+import Html.Attributes
+import ParticleEngine.Particle as Particle exposing (Particle)
+import ParticleEngine.Vector2 as Vector2
+import Svg exposing (Svg)
+import Svg.Attributes
 
 
 
@@ -10,12 +14,17 @@ import Html.Events exposing (onClick)
 
 
 type alias Model =
-    Int
+    List Particle
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( 0, Cmd.none )
+    ( [ Particle.new (Vector2.new 0 0) 100
+      , Particle.new (Vector2.new 100 0) 100
+      , Particle.new (Vector2.new -100 -50) 100
+      ]
+    , Cmd.none
+    )
 
 
 
@@ -23,36 +32,47 @@ init _ =
 
 
 type Msg
-    = Increment
-    | Decrement
-    | Reset
+    = NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Increment ->
-            ( model + 1, Cmd.none )
-
-        Decrement ->
-            ( model - 1, Cmd.none )
-
-        Reset ->
-            ( 0, Cmd.none )
+        NoOp ->
+            ( model, Cmd.none )
 
 
 
 -- VIEW
 
 
+viewParticle : Particle -> Svg msg
+viewParticle particle =
+    let
+        transform =
+            Svg.Attributes.transform <|
+                "translate("
+                    ++ String.fromInt (round particle.position.x)
+                    ++ " "
+                    ++ String.fromInt (round particle.position.y)
+                    ++ ")"
+    in
+    Svg.circle
+        [ transform
+        , Svg.Attributes.r "10"
+        , Svg.Attributes.fill "beige"
+        ]
+        []
+
+
 view : Model -> Html Msg
 view model =
-    main_ []
-        [ h3 [] [ text "Elm counter" ]
-        , p [] [ text <| String.fromInt model ]
-        , button [ onClick Increment ] [ text "+" ]
-        , button [ onClick Decrement ] [ text "-" ]
-        , button [ onClick Reset ] [ text "Reset" ]
+    main_ [ Html.Attributes.id "app" ]
+        [ Svg.svg
+            [ Svg.Attributes.viewBox "-500 -500 1000 1000"
+            , Svg.Attributes.class "game-view"
+            ]
+            (List.map viewParticle model)
         ]
 
 
@@ -77,4 +97,3 @@ main =
         , update = update
         , subscriptions = subscriptions
         }
-
