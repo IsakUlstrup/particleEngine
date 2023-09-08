@@ -1,6 +1,7 @@
 module Main exposing (Model, Msg, main)
 
 import Browser
+import Browser.Events
 import Html exposing (Html, main_)
 import Html.Attributes
 import ParticleEngine.Particle as Particle exposing (Particle)
@@ -19,9 +20,9 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( [ Particle.new (Vector2.new 0 0) 100
-      , Particle.new (Vector2.new 100 0) 100
-      , Particle.new (Vector2.new -100 -50) 100
+    ( [ Particle.new (Vector2.new 0 0) 1
+      , Particle.new (Vector2.new 100 0) 1
+      , Particle.new (Vector2.new -100 -50) 1
       ]
     , Cmd.none
     )
@@ -32,14 +33,14 @@ init _ =
 
 
 type Msg
-    = NoOp
+    = Tick Float
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoOp ->
-            ( model, Cmd.none )
+        Tick dt ->
+            ( List.map (Particle.step (Vector2.new 0 3000) (dt / 1000)) model, Cmd.none )
 
 
 
@@ -82,7 +83,7 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    Browser.Events.onAnimationFrameDelta Tick
 
 
 

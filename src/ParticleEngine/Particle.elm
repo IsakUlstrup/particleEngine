@@ -44,7 +44,9 @@ step force dt particle =
         | oldPosition = particle.position
         , position =
             particle.position
-                |> Vector2.add (velocity particle)
-                |> Vector2.add acceleration
-                |> Vector2.scale (dt ^ 2)
+                |> Vector2.add
+                    (acceleration
+                        |> Vector2.add (velocity particle)
+                        |> Vector2.scale (dt ^ 2)
+                    )
     }
