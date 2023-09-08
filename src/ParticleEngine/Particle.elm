@@ -23,21 +23,28 @@ new position mass =
     Particle position position mass
 
 
+{-| Derive velocity vector based on old position
+-}
+velocity : Particle -> Vector2
+velocity particle =
+    particle.position
+        |> Vector2.subtract particle.oldPosition
+
+
 {-| Step forwards using Verlet integration
 -}
 step : Vector2 -> Float -> Particle -> Particle
 step force dt particle =
     let
+        acceleration : Vector2
         acceleration =
-            force
-                |> Vector2.divide particle.mass
-                |> Vector2.scale (dt ^ 2)
+            Vector2.divide particle.mass force
     in
     { particle
         | oldPosition = particle.position
         , position =
             particle.position
-                |> Vector2.scale 2
-                |> Vector2.subtract particle.oldPosition
+                |> Vector2.add (velocity particle)
                 |> Vector2.add acceleration
+                |> Vector2.scale (dt ^ 2)
     }
