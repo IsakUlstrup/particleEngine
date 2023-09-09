@@ -2,6 +2,8 @@ module ParticleEngine.Vector2 exposing
     ( Vector2
     , add
     , divide
+    , mapX
+    , mapY
     , new
     , scale
     , subtract
@@ -17,6 +19,20 @@ type alias Vector2 =
 new : Float -> Float -> Vector2
 new x y =
     Vector2 x y
+
+
+{-| Map x component
+-}
+mapX : (Float -> Float) -> Vector2 -> Vector2
+mapX f vector =
+    { vector | x = f vector.x }
+
+
+{-| Map y component
+-}
+mapY : (Float -> Float) -> Vector2 -> Vector2
+mapY f vector =
+    { vector | y = f vector.y }
 
 
 {-| Add the components of two vectors together

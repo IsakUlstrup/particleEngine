@@ -15,14 +15,14 @@ import Svg.Attributes
 
 
 type alias Model =
-    List Particle
+    List ( Int, Particle )
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( [ Particle.new (Vector2.new 0 0) 1
-      , Particle.new (Vector2.new 100 0) 1
-      , Particle.new (Vector2.new -100 -50) 1
+    ( [ ( 0, Particle.new (Vector2.new 0 0) 1 )
+      , ( 1, Particle.new (Vector2.new 50 50) 1 )
+      , ( 2, Particle.new (Vector2.new -50 -50) 1 )
       ]
     , Cmd.none
     )
@@ -40,15 +40,19 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick dt ->
-            ( List.map (Particle.step (Vector2.new 0 3000) (dt / 1000)) model, Cmd.none )
+            ( model
+                |> List.map (Tuple.mapSecond (Particle.step (Vector2.new 300 2000) (dt / 1000)))
+                |> List.map (Tuple.mapSecond (Particle.constrain 500 500))
+            , Cmd.none
+            )
 
 
 
 -- VIEW
 
 
-viewParticle : Particle -> Svg msg
-viewParticle particle =
+viewParticle : ( Int, Particle ) -> Svg msg
+viewParticle ( _, particle ) =
     let
         transform =
             Svg.Attributes.transform <|

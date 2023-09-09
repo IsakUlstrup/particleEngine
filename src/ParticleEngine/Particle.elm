@@ -1,5 +1,6 @@
 module ParticleEngine.Particle exposing
     ( Particle
+    , constrain
     , new
     , step
     )
@@ -39,14 +40,53 @@ step force dt particle =
         acceleration : Vector2
         acceleration =
             Vector2.divide particle.mass force
+                |> Vector2.scale (dt ^ 2)
     in
     { particle
-        | oldPosition = particle.position
-        , position =
+        | position =
             particle.position
-                |> Vector2.add
-                    (acceleration
-                        |> Vector2.add (velocity particle)
-                        |> Vector2.scale (dt ^ 2)
-                    )
+                |> Vector2.add (velocity particle)
+                |> Vector2.add acceleration
+        , oldPosition = particle.position
+    }
+
+
+constrain : Float -> Float -> Particle -> Particle
+constrain width height particle =
+    let
+        vel =
+            velocity particle
+    in
+    if particle.position.x > width then
+        { particle
+            | position = Vector2.mapX (always width) particle.position
+            , oldPosition = Vector2.mapX (always <| width + vel.x) particle.oldPosition
+        }
+
+    else if particle.position.x < -width then
+        { particle
+            | position = Vector2.mapX (always -width) particle.position
+            , oldPosition = Vector2.mapX (always <| -width + vel.x) particle.oldPosition
+        }
+
+    else if particle.position.y > height then
+        { particle
+            | position = Vector2.mapY (always height) particle.position
+            , oldPosition = Vector2.mapY (always <| height + vel.y) particle.oldPosition
+        }
+
+    else if particle.position.y < -height then
+        { particle
+            | position = Vector2.mapY (always -height) particle.position
+            , oldPosition = Vector2.mapY (always <| -height + vel.y) particle.oldPosition
+        }
+
+    else
+        particle
+
+
+type alias Constraint =
+    { p1 : Particle
+    , p2 : Particle
+    , length : Float
     }
