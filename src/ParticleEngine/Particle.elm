@@ -4,11 +4,19 @@ module ParticleEngine.Particle exposing
     , constrain
     , mapStick
     , new
+    , radius
     , step
     , updateStick
     )
 
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
+
+
+{-| Particle radius constant
+-}
+radius : Float
+radius =
+    10
 
 
 {-| A particle meant to be used with Verlet integration
@@ -60,36 +68,36 @@ constrain width height particle =
         vel =
             velocity particle
     in
-    if particle.position.x > width then
+    if particle.position.x + radius > width then
         { particle
-            | position = Vector2.mapX (always width) particle.position
-            , oldPosition = Vector2.mapX (always <| width + vel.x) particle.oldPosition
+            | position = Vector2.mapX (always (width - radius)) particle.position
+            , oldPosition = Vector2.mapX (always <| (width - radius) + vel.x) particle.oldPosition
         }
 
-    else if particle.position.x < -width then
+    else if particle.position.x - radius < -width then
         { particle
-            | position = Vector2.mapX (always -width) particle.position
-            , oldPosition = Vector2.mapX (always <| -width + vel.x) particle.oldPosition
+            | position = Vector2.mapX (always -(width - radius)) particle.position
+            , oldPosition = Vector2.mapX (always <| -(width - radius) + vel.x) particle.oldPosition
         }
 
-    else if particle.position.y > height then
+    else if particle.position.y + radius > height then
         { particle
-            | position = Vector2.mapY (always height) particle.position
-            , oldPosition = Vector2.mapY (always <| height + vel.y) particle.oldPosition
+            | position = Vector2.mapY (always (height - radius)) particle.position
+            , oldPosition = Vector2.mapY (always <| (height - radius) + vel.y) particle.oldPosition
         }
 
-    else if particle.position.y < -height then
+    else if particle.position.y - radius < -height then
         { particle
-            | position = Vector2.mapY (always -height) particle.position
-            , oldPosition = Vector2.mapY (always <| -height + vel.y) particle.oldPosition
+            | position = Vector2.mapY (always -(height - radius)) particle.position
+            , oldPosition = Vector2.mapY (always <| -(height - radius) + vel.y) particle.oldPosition
         }
 
     else
         particle
 
 
-constrainStick : Float -> Particle -> Particle -> ( Particle, Particle )
-constrainStick length p1 p2 =
+constrainStick : Float -> ( Particle, Particle ) -> ( Particle, Particle )
+constrainStick length ( p1, p2 ) =
     let
         dist =
             Vector2.distance p1.position p2.position
@@ -114,17 +122,23 @@ updateStick stick =
         None _ ->
             stick
 
-        Link dist p1 p2 ->
+        Link dist p1 p2 p3 ->
             let
                 ( newp1, newp2 ) =
-                    constrainStick dist p1 p2
+                    constrainStick dist ( p1, p2 )
+
+                ( newp22, newp3 ) =
+                    constrainStick dist ( newp2, p3 )
+
+                ( newp32, newp12 ) =
+                    constrainStick dist ( newp3, newp1 )
             in
-            Link dist newp1 newp2
+            Link dist newp12 newp22 newp32
 
 
 type Stick
     = None Particle
-    | Link Float Particle Particle
+    | Link Float Particle Particle Particle
 
 
 mapStick : (Particle -> Particle) -> Stick -> Stick
@@ -133,5 +147,5 @@ mapStick f stick =
         None a ->
             None <| f a
 
-        Link dist p1 p2 ->
-            Link dist (f p1) (f p2)
+        Link dist p1 p2 p3 ->
+            Link dist (f p1) (f p2) (f p3)

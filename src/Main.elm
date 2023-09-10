@@ -10,6 +10,14 @@ import Svg exposing (Svg)
 import Svg.Attributes
 
 
+triangle : Float -> Vector2 -> Stick
+triangle length position =
+    Link length
+        (Particle.new (Vector2.new 50 0 |> Vector2.add position) 1)
+        (Particle.new (Vector2.new 0 -50 |> Vector2.add position) 1)
+        (Particle.new (Vector2.new -50 0 |> Vector2.add position) 1)
+
+
 
 -- MODEL
 
@@ -22,10 +30,10 @@ type alias Model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( Model
-        [ Link 100
-            (Particle.new (Vector2.new 50 0) 1)
-            (Particle.new (Vector2.new 0 -50) 1)
-        , None (Particle.new (Vector2.new -50 0) 1)
+        [ triangle 100 Vector2.zero
+        , triangle 150 (Vector2.new -200 -200)
+        , triangle 30 (Vector2.new 200 -300)
+        , triangle 50 (Vector2.new 100 -300)
         ]
     , Cmd.none
     )
@@ -46,7 +54,7 @@ update msg model =
             ( { model
                 | particles =
                     model.particles
-                        |> List.map (mapStick (Particle.step (Vector2.new 300 2000) (dt / 1000)))
+                        |> List.map (mapStick (Particle.step (Vector2.new 0 2000) (dt / 1000)))
                         |> List.map Particle.updateStick
                         |> List.map (mapStick (Particle.constrain 500 500))
               }
@@ -64,14 +72,14 @@ viewParticle particle =
         transform =
             Svg.Attributes.transform <|
                 "translate("
-                    ++ String.fromInt (round particle.position.x)
+                    ++ String.fromFloat particle.position.x
                     ++ " "
-                    ++ String.fromInt (round particle.position.y)
+                    ++ String.fromFloat particle.position.y
                     ++ ")"
     in
     Svg.circle
         [ transform
-        , Svg.Attributes.r "10"
+        , Svg.Attributes.r <| String.fromInt (round Particle.radius)
         , Svg.Attributes.fill "beige"
         ]
         []
@@ -95,8 +103,8 @@ viewStick stick =
         None p ->
             [ viewParticle p ]
 
-        Link _ p1 p2 ->
-            [ viewLink p1.position p2.position, viewParticle p1, viewParticle p2 ]
+        Link _ p1 p2 p3 ->
+            [ viewLink p1.position p2.position, viewLink p2.position p3.position, viewLink p3.position p1.position, viewParticle p1, viewParticle p2, viewParticle p3 ]
 
 
 view : Model -> Html Msg
@@ -106,7 +114,15 @@ view model =
             [ Svg.Attributes.viewBox "-500 -500 1000 1000"
             , Svg.Attributes.class "game-view"
             ]
-            (List.concatMap viewStick model.particles)
+            [ Svg.rect
+                [ Svg.Attributes.width "1000"
+                , Svg.Attributes.height "1000"
+                , Svg.Attributes.x "-500"
+                , Svg.Attributes.y "-500"
+                ]
+                []
+            , Svg.g [] (List.concatMap viewStick model.particles)
+            ]
         ]
 
 

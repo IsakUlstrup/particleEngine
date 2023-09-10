@@ -9,6 +9,7 @@ module ParticleEngine.Vector2 exposing
     , new
     , scale
     , subtract
+    , zero
     )
 
 
@@ -89,3 +90,10 @@ distance v1 v2 =
 direction : Vector2 -> Vector2 -> Vector2
 direction origin target =
     Vector2 (target.x - origin.x) (target.y - origin.y) |> normalize
+
+
+{-| Construct new vector with both components set to 0
+-}
+zero : Vector2
+zero =
+    new 0 0
