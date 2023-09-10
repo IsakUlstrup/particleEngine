@@ -1,8 +1,11 @@
 module ParticleEngine.Particle exposing
     ( Particle
+    , Stick(..)
     , constrain
+    , mapStick
     , new
     , step
+    , updateStick
     )
 
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
@@ -85,8 +88,50 @@ constrain width height particle =
         particle
 
 
-type alias Constraint =
-    { p1 : Particle
-    , p2 : Particle
-    , length : Float
-    }
+constrainStick : Float -> Particle -> Particle -> ( Particle, Particle )
+constrainStick length p1 p2 =
+    let
+        dist =
+            Vector2.distance p1.position p2.position
+
+        diff =
+            length - dist
+
+        percent =
+            (diff / dist) / 2
+
+        offset =
+            Vector2.scale percent (Vector2.subtract p1.position p2.position)
+    in
+    ( { p1 | position = p1.position |> Vector2.subtract offset }
+    , { p2 | position = p2.position |> Vector2.add offset }
+    )
+
+
+updateStick : Stick -> Stick
+updateStick stick =
+    case stick of
+        None _ ->
+            stick
+
+        Link dist p1 p2 ->
+            let
+                ( newp1, newp2 ) =
+                    constrainStick dist p1 p2
+            in
+            Link dist newp1 newp2
+
+
+type Stick
+    = None Particle
+    | Link Float Particle Particle
+
+
+mapStick : (Particle -> Particle) -> Stick -> Stick
+mapStick f stick =
+    case stick of
+        None a ->
+            None <| f a
+
+        Link dist p1 p2 ->
+            Link dist (f p1) (f p2)
