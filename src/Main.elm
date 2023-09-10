@@ -33,10 +33,7 @@ init _ =
         [ triangle 100 Vector2.zero
         , triangle 150 (Vector2.new -200 -200)
         , triangle 40 (Vector2.new 200 -300)
-        , triangle 50 (Vector2.new 100 -300)
-        , triangle 200 (Vector2.new -400 -300)
-        , triangle 200 (Vector2.new 400 -300)
-        , triangle 10 (Vector2.new 400 -300)
+        , triangle 80 (Vector2.new 100 -300)
         ]
     , Cmd.none
     )
