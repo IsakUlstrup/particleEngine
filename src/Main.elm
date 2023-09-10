@@ -12,7 +12,7 @@ import Svg.Attributes
 
 triangle : Float -> Vector2 -> Stick
 triangle length position =
-    Link length
+    Link (Particle.radius * 2 + length)
         (Particle.new (Vector2.new 50 0 |> Vector2.add position) 1)
         (Particle.new (Vector2.new 0 -50 |> Vector2.add position) 1)
         (Particle.new (Vector2.new -50 0 |> Vector2.add position) 1)
@@ -32,8 +32,11 @@ init _ =
     ( Model
         [ triangle 100 Vector2.zero
         , triangle 150 (Vector2.new -200 -200)
-        , triangle 30 (Vector2.new 200 -300)
+        , triangle 40 (Vector2.new 200 -300)
         , triangle 50 (Vector2.new 100 -300)
+        , triangle 200 (Vector2.new -400 -300)
+        , triangle 200 (Vector2.new 400 -300)
+        , triangle 10 (Vector2.new 400 -300)
         ]
     , Cmd.none
     )
@@ -54,7 +57,7 @@ update msg model =
             ( { model
                 | particles =
                     model.particles
-                        |> List.map (mapStick (Particle.step (Vector2.new 0 2000) (dt / 1000)))
+                        |> List.map (mapStick (Particle.step (Vector2.new 0 500) (dt / 1000)))
                         |> List.map Particle.updateStick
                         |> List.map (mapStick (Particle.constrain 500 500))
               }
