@@ -2,20 +2,13 @@ module Main exposing (Model, Msg, main)
 
 import Browser
 import Browser.Events
+import Dict exposing (Dict)
 import Html exposing (Html, main_)
 import Html.Attributes
-import ParticleEngine.Particle as Particle exposing (Particle, Stick(..), mapStick)
-import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
+import ParticleEngine.Particle as Particle exposing (Particle, Stick(..))
+import ParticleEngine.Vector2 as Vector2
 import Svg exposing (Svg)
 import Svg.Attributes
-
-
-triangle : Float -> Vector2 -> Stick
-triangle length position =
-    Link (Particle.radius * 2 + length)
-        (Particle.new (Vector2.new 50 0 |> Vector2.add position) 1)
-        (Particle.new (Vector2.new 0 -50 |> Vector2.add position) 1)
-        (Particle.new (Vector2.new -50 0 |> Vector2.add position) 1)
 
 
 
@@ -23,18 +16,27 @@ triangle length position =
 
 
 type alias Model =
-    { particles : List Stick
+    { particles : Dict Int Particle
+    , idCounter : Int
+    }
+
+
+addParticle : Particle -> Model -> Model
+addParticle particle model =
+    { model
+        | particles = model.particles |> Dict.insert model.idCounter particle
+        , idCounter = model.idCounter + 1
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( Model
-        [ triangle 100 Vector2.zero
-        , triangle 150 (Vector2.new -200 -200)
-        , triangle 40 (Vector2.new 200 -300)
-        , triangle 80 (Vector2.new 100 -300)
-        ]
+        Dict.empty
+        0
+        |> addParticle (Particle.new (Vector2.new -100 -100) 1)
+        |> addParticle (Particle.new (Vector2.new 0 -50) 1)
+        |> addParticle (Particle.new (Vector2.new 100 0) 1)
     , Cmd.none
     )
 
@@ -54,9 +56,8 @@ update msg model =
             ( { model
                 | particles =
                     model.particles
-                        |> List.map (mapStick (Particle.step (Vector2.new 0 500) (dt / 1000)))
-                        |> List.map Particle.updateStick
-                        |> List.map (mapStick (Particle.constrain 500 500))
+                        |> Dict.map (\_ p -> Particle.step (Vector2.new 0 500) (dt / 1000) p)
+                        |> Dict.map (\_ p -> Particle.constrain 500 500 p)
               }
             , Cmd.none
             )
@@ -66,8 +67,8 @@ update msg model =
 -- VIEW
 
 
-viewParticle : Particle -> Svg msg
-viewParticle particle =
+viewParticle : ( Int, Particle ) -> Svg msg
+viewParticle ( _, particle ) =
     let
         transform =
             Svg.Attributes.transform <|
@@ -85,28 +86,6 @@ viewParticle particle =
         []
 
 
-viewLink : Vector2 -> Vector2 -> Svg msg
-viewLink from to =
-    Svg.line
-        [ Svg.Attributes.x1 <| String.fromInt (round from.x)
-        , Svg.Attributes.y1 <| String.fromInt (round from.y)
-        , Svg.Attributes.x2 <| String.fromInt (round to.x)
-        , Svg.Attributes.y2 <| String.fromInt (round to.y)
-        , Svg.Attributes.stroke "beige"
-        ]
-        []
-
-
-viewStick : Stick -> List (Svg msg)
-viewStick stick =
-    case stick of
-        None p ->
-            [ viewParticle p ]
-
-        Link _ p1 p2 p3 ->
-            [ viewLink p1.position p2.position, viewLink p2.position p3.position, viewLink p3.position p1.position, viewParticle p1, viewParticle p2, viewParticle p3 ]
-
-
 view : Model -> Html Msg
 view model =
     main_ [ Html.Attributes.id "app" ]
@@ -121,7 +100,7 @@ view model =
                 , Svg.Attributes.y "-500"
                 ]
                 []
-            , Svg.g [] (List.concatMap viewStick model.particles)
+            , Svg.g [] (Dict.toList model.particles |> List.map viewParticle)
             ]
         ]
 
