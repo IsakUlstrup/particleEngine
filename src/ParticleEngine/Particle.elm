@@ -1,13 +1,10 @@
 module ParticleEngine.Particle exposing
     ( Particle
-    , Stick(..)
     , constrain
     , constrainStick
-    , mapStick
     , new
     , radius
     , step
-    , updateStick
     )
 
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
@@ -115,38 +112,3 @@ constrainStick length ( p1, p2 ) =
     ( { p1 | position = p1.position |> Vector2.subtract offset }
     , { p2 | position = p2.position |> Vector2.add offset }
     )
-
-
-updateStick : Stick -> Stick
-updateStick stick =
-    case stick of
-        None _ ->
-            stick
-
-        Link dist p1 p2 p3 ->
-            let
-                ( newp1, newp2 ) =
-                    constrainStick dist ( p1, p2 )
-
-                ( newp22, newp3 ) =
-                    constrainStick dist ( newp2, p3 )
-
-                ( newp32, newp12 ) =
-                    constrainStick dist ( newp3, newp1 )
-            in
-            Link dist newp12 newp22 newp32
-
-
-type Stick
-    = None Particle
-    | Link Float Particle Particle Particle
-
-
-mapStick : (Particle -> Particle) -> Stick -> Stick
-mapStick f stick =
-    case stick of
-        None a ->
-            None <| f a
-
-        Link dist p1 p2 p3 ->
-            Link dist (f p1) (f p2) (f p3)

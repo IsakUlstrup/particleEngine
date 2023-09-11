@@ -6,7 +6,7 @@ import Dict exposing (Dict)
 import Html exposing (Html, main_)
 import Html.Attributes
 import Html.Events
-import ParticleEngine.Particle as Particle exposing (Particle, Stick(..))
+import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import Svg exposing (Svg)
 import Svg.Attributes
