@@ -68,7 +68,8 @@ init _ =
         |> addConstraint 1 2 100
         |> addConstraint 2 3 100
         |> addConstraint 3 0 100
-        |> addConstraint 0 2 150
+        |> addConstraint 0 2 141.42
+        |> addConstraint 1 3 141.42
     , Cmd.none
     )
 
