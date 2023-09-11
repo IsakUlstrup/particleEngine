@@ -18,6 +18,7 @@ import Svg.Attributes
 type alias Model =
     { particles : Dict Int Particle
     , idCounter : Int
+    , constraints : Dict ( Int, Int ) Float
     }
 
 
@@ -29,14 +30,27 @@ addParticle particle model =
     }
 
 
+addConstraint : Int -> Int -> Float -> Model -> Model
+addConstraint from to length model =
+    { model | constraints = model.constraints |> Dict.insert ( from, to ) length }
+
+
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( Model
         Dict.empty
         0
+        Dict.empty
+        |> addParticle (Particle.new (Vector2.new -150 -150) 1)
         |> addParticle (Particle.new (Vector2.new -100 -100) 1)
-        |> addParticle (Particle.new (Vector2.new 0 -50) 1)
-        |> addParticle (Particle.new (Vector2.new 100 0) 1)
+        |> addParticle (Particle.new (Vector2.new -50 -50) 1)
+        |> addParticle (Particle.new (Vector2.new 0 0) 1)
+        |> addParticle (Particle.new (Vector2.new 50 50) 1)
+        |> addParticle (Particle.new (Vector2.new 100 100) 1)
+        |> addParticle (Particle.new (Vector2.new 150 150) 1)
+        |> addConstraint 0 1 100
+        |> addConstraint 1 5 300
+        |> addConstraint 5 0 300
     , Cmd.none
     )
 
@@ -86,6 +100,24 @@ viewParticle ( _, particle ) =
         []
 
 
+viewConstraint : Dict Int Particle -> ( ( Int, Int ), Float ) -> Maybe (Svg msg)
+viewConstraint particles ( ( from, to ), length ) =
+    case ( Dict.get from particles, Dict.get to particles ) of
+        ( Just origin, Just target ) ->
+            Just <|
+                Svg.line
+                    [ Svg.Attributes.x1 <| String.fromFloat origin.position.x
+                    , Svg.Attributes.y1 <| String.fromFloat origin.position.y
+                    , Svg.Attributes.x2 <| String.fromFloat target.position.x
+                    , Svg.Attributes.y2 <| String.fromFloat target.position.y
+                    , Svg.Attributes.stroke "beige"
+                    ]
+                    []
+
+        _ ->
+            Nothing
+
+
 view : Model -> Html Msg
 view model =
     main_ [ Html.Attributes.id "app" ]
@@ -100,6 +132,7 @@ view model =
                 , Svg.Attributes.y "-500"
                 ]
                 []
+            , Svg.g [] (Dict.toList model.constraints |> List.filterMap (viewConstraint model.particles))
             , Svg.g [] (Dict.toList model.particles |> List.map viewParticle)
             ]
         ]
