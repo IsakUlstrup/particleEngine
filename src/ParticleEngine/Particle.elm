@@ -2,6 +2,7 @@ module ParticleEngine.Particle exposing
     ( Particle
     , Stick(..)
     , constrain
+    , constrainStick
     , mapStick
     , new
     , radius

@@ -35,28 +35,62 @@ addConstraint from to length model =
     { model | constraints = model.constraints |> Dict.insert ( from, to ) length }
 
 
+addParticleList : List ( Float, Float ) -> Model -> Model
+addParticleList positions model =
+    let
+        particle ( x, y ) =
+            Particle.new (Vector2.new x y) 1
+
+        particles =
+            List.map particle positions
+    in
+    List.foldl addParticle model particles
+
+
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( Model
         Dict.empty
         0
         Dict.empty
-        |> addParticle (Particle.new (Vector2.new -150 -150) 1)
-        |> addParticle (Particle.new (Vector2.new -100 -100) 1)
-        |> addParticle (Particle.new (Vector2.new -50 -50) 1)
-        |> addParticle (Particle.new (Vector2.new 0 0) 1)
-        |> addParticle (Particle.new (Vector2.new 50 50) 1)
-        |> addParticle (Particle.new (Vector2.new 100 100) 1)
-        |> addParticle (Particle.new (Vector2.new 150 150) 1)
+        |> addParticleList
+            [ ( -50, -50 )
+            , ( 50, -50 )
+            , ( 50, 50 )
+            , ( -50, 50 )
+            ]
         |> addConstraint 0 1 100
-        |> addConstraint 1 5 300
-        |> addConstraint 5 0 300
+        |> addConstraint 1 2 100
+        |> addConstraint 2 3 100
+        |> addConstraint 3 0 100
+        |> addConstraint 0 2 150
     , Cmd.none
     )
 
 
 
 -- UPDATE
+
+
+constrainPair : ( ( Int, Int ), Float ) -> Dict Int Particle -> Dict Int Particle
+constrainPair ( ( from, to ), length ) particles =
+    case ( Dict.get from particles, Dict.get to particles ) of
+        ( Just origin, Just target ) ->
+            let
+                ( p1, p2 ) =
+                    Particle.constrainStick length ( origin, target )
+            in
+            particles
+                |> Dict.insert from p1
+                |> Dict.insert to p2
+
+        _ ->
+            particles
+
+
+constrainParticles : Dict ( Int, Int ) Float -> Dict Int Particle -> Dict Int Particle
+constrainParticles constraints particles =
+    List.foldl constrainPair particles (Dict.toList constraints)
 
 
 type Msg
@@ -72,6 +106,7 @@ update msg model =
                     model.particles
                         |> Dict.map (\_ p -> Particle.step (Vector2.new 0 500) (dt / 1000) p)
                         |> Dict.map (\_ p -> Particle.constrain 500 500 p)
+                        |> constrainParticles model.constraints
               }
             , Cmd.none
             )
