@@ -5,8 +5,9 @@ import Browser.Events
 import Dict exposing (Dict)
 import Html exposing (Html, main_)
 import Html.Attributes
+import Html.Events
 import ParticleEngine.Particle as Particle exposing (Particle, Stick(..))
-import ParticleEngine.Vector2 as Vector2
+import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import Svg exposing (Svg)
 import Svg.Attributes
 
@@ -19,6 +20,7 @@ type alias Model =
     { particles : Dict Int Particle
     , idCounter : Int
     , constraints : Dict ( Int, Int ) Float
+    , forces : List ( Bool, Vector2 )
     }
 
 
@@ -53,6 +55,9 @@ init _ =
         Dict.empty
         0
         Dict.empty
+        [ ( False, Vector2.new 0 500 )
+        , ( False, Vector2.new 200 0 )
+        ]
         |> addParticleList
             [ ( -50, -50 )
             , ( 50, -50 )
@@ -95,21 +100,48 @@ constrainParticles constraints particles =
 
 type Msg
     = Tick Float
+    | ToggleForce Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick dt ->
+            let
+                sumForces =
+                    List.foldl Vector2.add
+                        Vector2.zero
+                        (List.filterMap
+                            (\( e, f ) ->
+                                if e then
+                                    Just f
+
+                                else
+                                    Nothing
+                            )
+                            model.forces
+                        )
+            in
             ( { model
                 | particles =
                     model.particles
-                        |> Dict.map (\_ p -> Particle.step (Vector2.new 0 500) (dt / 1000) p)
+                        |> Dict.map (\_ p -> Particle.step sumForces (dt / 1000) p)
                         |> Dict.map (\_ p -> Particle.constrain 500 500 p)
                         |> constrainParticles model.constraints
               }
             , Cmd.none
             )
+
+        ToggleForce targetIndex ->
+            let
+                toggleForce index force =
+                    if targetIndex == index then
+                        Tuple.mapFirst not force
+
+                    else
+                        force
+            in
+            ( { model | forces = List.indexedMap toggleForce model.forces }, Cmd.none )
 
 
 
@@ -153,10 +185,32 @@ viewConstraint particles ( ( from, to ), length ) =
             Nothing
 
 
+viewSidebarForces : List ( Bool, Vector2 ) -> Html Msg
+viewSidebarForces forces =
+    let
+        viewForce index ( enabled, force ) =
+            Html.li []
+                [ Html.input
+                    [ Html.Attributes.type_ "checkbox"
+                    , Html.Attributes.checked enabled
+                    , Html.Events.onClick (ToggleForce index)
+                    , Html.Attributes.id <| "force-" ++ String.fromInt index
+                    ]
+                    []
+                , Html.label [ Html.Attributes.for <| "force-" ++ String.fromInt index ] [ Html.text <| String.fromInt index ++ ", " ++ Vector2.toString force ]
+                ]
+    in
+    Html.details []
+        [ Html.summary [] [ Html.text "Forces" ]
+        , Html.ul [] (List.indexedMap viewForce forces)
+        ]
+
+
 view : Model -> Html Msg
 view model =
     main_ [ Html.Attributes.id "app" ]
-        [ Svg.svg
+        [ Html.section [ Html.Attributes.class "sidebar" ] [ viewSidebarForces model.forces ]
+        , Svg.svg
             [ Svg.Attributes.viewBox "-500 -500 1000 1000"
             , Svg.Attributes.class "game-view"
             ]
@@ -165,6 +219,7 @@ view model =
                 , Svg.Attributes.height "1000"
                 , Svg.Attributes.x "-500"
                 , Svg.Attributes.y "-500"
+                , Svg.Attributes.class "constraint"
                 ]
                 []
             , Svg.g [] (Dict.toList model.constraints |> List.filterMap (viewConstraint model.particles))
