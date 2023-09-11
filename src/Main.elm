@@ -101,6 +101,8 @@ constrainParticles constraints particles =
 type Msg
     = Tick Float
     | ToggleForce Int
+    | SetForce Int Vector2
+    | AddForce
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -142,6 +144,20 @@ update msg model =
                         force
             in
             ( { model | forces = List.indexedMap toggleForce model.forces }, Cmd.none )
+
+        SetForce targetIndex newForce ->
+            let
+                setForce index force =
+                    if index == targetIndex then
+                        Tuple.mapSecond (always newForce) force
+
+                    else
+                        force
+            in
+            ( { model | forces = List.indexedMap setForce model.forces }, Cmd.none )
+
+        AddForce ->
+            ( { model | forces = ( False, Vector2.zero ) :: model.forces }, Cmd.none )
 
 
 
@@ -194,15 +210,33 @@ viewSidebarForces forces =
                     [ Html.Attributes.type_ "checkbox"
                     , Html.Attributes.checked enabled
                     , Html.Events.onClick (ToggleForce index)
-                    , Html.Attributes.id <| "force-" ++ String.fromInt index
                     ]
                     []
-                , Html.label [ Html.Attributes.for <| "force-" ++ String.fromInt index ] [ Html.text <| String.fromInt index ++ ", " ++ Vector2.toString force ]
+                , Html.input
+                    [ Html.Attributes.type_ "number"
+                    , Html.Attributes.value <| String.fromFloat force.x
+                    , Html.Attributes.step "0.1"
+                    , Html.Events.onInput (\i -> SetForce index (Vector2.mapX (always (Maybe.withDefault 0 (String.toFloat i))) force))
+                    ]
+                    []
+                , Html.input
+                    [ Html.Attributes.type_ "number"
+                    , Html.Attributes.value <| String.fromFloat force.y
+                    , Html.Attributes.step "0.1"
+                    , Html.Events.onInput (\i -> SetForce index (Vector2.mapY (always (Maybe.withDefault 0 (String.toFloat i))) force))
+                    ]
+                    []
                 ]
     in
     Html.details []
         [ Html.summary [] [ Html.text "Forces" ]
         , Html.ul [] (List.indexedMap viewForce forces)
+        , Html.input
+            [ Html.Attributes.type_ "button"
+            , Html.Attributes.value "New force"
+            , Html.Events.onClick AddForce
+            ]
+            []
         ]
 
 
