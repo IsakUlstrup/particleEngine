@@ -139,7 +139,7 @@ fixedUpdate dt model =
             |> fixedUpdate (dt - model.stepTime)
 
     else
-        { model | timeAccum = dt }
+        { model | timeAccum = model.timeAccum + dt }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
