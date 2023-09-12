@@ -20,6 +20,26 @@ import Svg.Events
 import Task
 
 
+nGon : Vector2 -> Int -> Float -> List Particle
+nGon center points radius =
+    let
+        angle : Int -> Float
+        angle index =
+            ((2 * pi) / toFloat points) * toFloat index
+
+        position : Int -> Vector2
+        position index =
+            Vector2.new (cos <| angle index) (sin <| angle index)
+                |> Vector2.scale radius
+                |> Vector2.add center
+
+        newParticle : Int -> Particle
+        newParticle index =
+            Particle.new (position index) 1
+    in
+    List.range 0 (points - 1) |> List.map newParticle
+
+
 
 -- MODEL
 
@@ -62,12 +82,15 @@ addParticle particle model =
     }
 
 
+addParticles : List Particle -> Model -> Model
+addParticles particles model =
+    List.foldl addParticle model particles
+
+
 addConstraint : Int -> Int -> Model -> Model
 addConstraint from to model =
     case particleDistance from to model.particles of
         Just dist ->
-            -- make constraint
-            -- addConstraint id selected dist m
             { model | constraints = model.constraints |> Dict.insert ( from, to ) dist }
 
         Nothing ->
@@ -104,7 +127,7 @@ init _ =
         Dict.empty
         0
         Dict.empty
-        [ ( True, Vector2.new 0 300 )
+        [ ( False, Vector2.new 0 300 )
         , ( False, Vector2.new 200 0 )
         ]
         0.02
@@ -125,14 +148,7 @@ init _ =
         |> addConstraint 3 0
         |> addConstraint 0 2
         |> addConstraint 1 3
-        |> addParticleList
-            [ ( -250, -250 )
-            , ( 250, -250 )
-            , ( 250, 250 )
-            , ( 50, -250 )
-            , ( 24, -236 )
-            , ( -24, 36 )
-            ]
+        |> addParticles (nGon (Vector2.new -300 0) 20 100)
     , gameResize
     )
 
