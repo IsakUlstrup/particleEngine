@@ -20,9 +20,16 @@ import Task
 -- MODEL
 
 
+type PointerMode
+    = CreateParticle
+    | AttractParticles
+    | RepelParticles
+
+
 type alias Pointer =
     { position : Vector2
     , pressed : Bool
+    , mode : PointerMode
     }
 
 
@@ -92,7 +99,7 @@ init _ =
         0.02
         0
         (RenderConfig 1000 1000)
-        (Pointer Vector2.zero False)
+        (Pointer Vector2.zero False CreateParticle)
         []
         |> addParticleList
             [ ( -50, -50 )
@@ -143,6 +150,20 @@ type Msg
     | WindowResize
     | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
     | PointerChanged Float Float Bool
+    | SetPointerMode PointerMode
+
+
+pointerForce : Pointer -> Particle -> Vector2
+pointerForce pointer particle =
+    case ( pointer.pressed, pointer.mode ) of
+        ( True, AttractParticles ) ->
+            Vector2.direction particle.position pointer.position |> Vector2.scale 50
+
+        ( True, RepelParticles ) ->
+            Vector2.direction pointer.position particle.position |> Vector2.scale 50
+
+        _ ->
+            Vector2.zero
 
 
 fixedUpdate : Float -> Model -> Model
@@ -167,23 +188,27 @@ fixedUpdate dt model =
             | timeAccum = dt - model.stepTime
             , particles =
                 model.particles
-                    |> Dict.map (\_ p -> Particle.step sumForces model.stepTime p)
+                    |> Dict.map (\_ p -> Particle.applyForce sumForces p)
+                    |> Dict.map (\_ p -> Particle.applyForce (pointerForce model.pointer p) p)
+                    |> Dict.map (\_ p -> Particle.step model.stepTime p)
                     |> Dict.map (\_ p -> Particle.constrain (model.renderConfig.width / 2) (model.renderConfig.height / 2) p)
                     |> constrainParticles model.constraints
         }
+            |> pointerAction
             |> fixedUpdate (dt - model.stepTime)
 
     else
         { model | timeAccum = model.timeAccum + dt }
 
 
-addParticleIsPointerPressed : Model -> Model
-addParticleIsPointerPressed model =
-    if model.pointer.pressed then
-        addParticle (Particle.new model.pointer.position 1) model
+pointerAction : Model -> Model
+pointerAction model =
+    case ( model.pointer.pressed, model.pointer.mode ) of
+        ( True, CreateParticle ) ->
+            addParticle (Particle.new model.pointer.position 1) model
 
-    else
-        model
+        _ ->
+            model
 
 
 addToDtHistory : Float -> Model -> Model
@@ -197,7 +222,7 @@ update msg model =
         Tick dt ->
             ( model
                 |> fixedUpdate (model.timeAccum + (dt / 1000))
-                |> addParticleIsPointerPressed
+                |> pointerAction
                 |> addToDtHistory dt
             , Cmd.none
             )
@@ -244,7 +269,10 @@ update msg model =
             ( model, Cmd.none )
 
         PointerChanged x y pressed ->
-            ( { model | pointer = Pointer (Vector2.new (x - model.renderConfig.width / 2) (y - model.renderConfig.height / 2)) pressed }, Cmd.none )
+            ( { model | pointer = Pointer (Vector2.new (x - model.renderConfig.width / 2) (y - model.renderConfig.height / 2)) pressed model.pointer.mode }, Cmd.none )
+
+        SetPointerMode mode ->
+            ( { model | pointer = Pointer model.pointer.position model.pointer.pressed mode }, Cmd.none )
 
 
 
@@ -358,6 +386,31 @@ viewSidebarStats model =
         ]
 
 
+viewSidebarPointerMode : PointerMode -> Html Msg
+viewSidebarPointerMode _ =
+    Html.details []
+        [ Html.summary [] [ Html.text "Pointer Mode" ]
+        , Html.input
+            [ Html.Attributes.type_ "button"
+            , Html.Attributes.value "Create particle"
+            , Html.Events.onClick <| SetPointerMode CreateParticle
+            ]
+            []
+        , Html.input
+            [ Html.Attributes.type_ "button"
+            , Html.Attributes.value "Attract particles"
+            , Html.Events.onClick <| SetPointerMode AttractParticles
+            ]
+            []
+        , Html.input
+            [ Html.Attributes.type_ "button"
+            , Html.Attributes.value "Repel particles"
+            , Html.Events.onClick <| SetPointerMode RepelParticles
+            ]
+            []
+        ]
+
+
 viewPointer : Pointer -> Svg msg
 viewPointer pointer =
     let
@@ -395,6 +448,7 @@ view model =
         [ Html.section [ Html.Attributes.class "sidebar" ]
             [ viewSidebarForces model.forces
             , viewSidebarStats model
+            , viewSidebarPointerMode model.pointer.mode
             ]
         , Svg.svg
             [ viewBox model.renderConfig

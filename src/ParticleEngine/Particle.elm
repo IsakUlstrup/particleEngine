@@ -1,5 +1,6 @@
 module ParticleEngine.Particle exposing
     ( Particle
+    , applyForce
     , constrain
     , constrainStick
     , new
@@ -22,6 +23,7 @@ radius =
 type alias Particle =
     { position : Vector2
     , oldPosition : Vector2
+    , acceleration : Vector2
     , mass : Float
     }
 
@@ -30,7 +32,12 @@ type alias Particle =
 -}
 new : Vector2 -> Float -> Particle
 new position mass =
-    Particle position position mass
+    Particle position position Vector2.zero mass
+
+
+applyForce : Vector2 -> Particle -> Particle
+applyForce force particle =
+    { particle | acceleration = Vector2.add particle.acceleration (Vector2.divide particle.mass force) }
 
 
 {-| Derive velocity vector based on old position
@@ -43,20 +50,15 @@ velocity particle =
 
 {-| Step forwards using Verlet integration
 -}
-step : Vector2 -> Float -> Particle -> Particle
-step force dt particle =
-    let
-        acceleration : Vector2
-        acceleration =
-            Vector2.divide particle.mass force
-                |> Vector2.scale (dt ^ 2)
-    in
+step : Float -> Particle -> Particle
+step dt particle =
     { particle
         | position =
             particle.position
                 |> Vector2.add (velocity particle)
-                |> Vector2.add acceleration
+                |> Vector2.add (Vector2.scale (dt ^ 2) particle.acceleration)
         , oldPosition = particle.position
+        , acceleration = Vector2.zero
     }
 
 
