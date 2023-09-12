@@ -36,14 +36,21 @@ $spacing-large: 2rem
         display: flex
         flex-direction: column
         gap: $spacing-medium
-    input
-        padding: $spacing-small
+        border: 1px solid $primary-color
+        border-radius: $spacing-small
+        overflow: hidden
 
     summary
         cursor: pointer
         background-color: lighten($secondary-color, 10)
         padding: $spacing-small
         user-select: none
+
+        &:hover
+            background-color: lighten($secondary-color, 20)
+
+    input
+        padding: $spacing-small
 
     ul
         list-style: none
@@ -76,6 +83,7 @@ $spacing-large: 2rem
     stroke-width: 1
 
 .constraint
+    cursor: crosshair
     &:hover
         stroke: red
 
