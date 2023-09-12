@@ -97,7 +97,7 @@ init _ =
         Dict.empty
         0
         Dict.empty
-        [ ( False, Vector2.new 0 500 )
+        [ ( True, Vector2.new 0 300 )
         , ( False, Vector2.new 200 0 )
         ]
         0.02
@@ -122,6 +122,9 @@ init _ =
             [ ( -250, -250 )
             , ( 250, -250 )
             , ( 250, 250 )
+            , ( 50, -250 )
+            , ( 24, -236 )
+            , ( -24, 36 )
             ]
     , gameResize
     )
