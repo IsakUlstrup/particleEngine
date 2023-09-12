@@ -424,11 +424,16 @@ viewSidebarStats model =
         particleCount : Int
         particleCount =
             Dict.toList model.particles |> List.length
+
+        constraintCount : Int
+        constraintCount =
+            Dict.toList model.constraints |> List.length
     in
     Html.details []
         [ Html.summary [] [ Html.text "Stats" ]
         , Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.dtHistory ]
         , Html.p [] [ Html.text <| "Particle count: " ++ String.fromInt particleCount ]
+        , Html.p [] [ Html.text <| "Constraint count: " ++ String.fromInt constraintCount ]
         ]
 
 
