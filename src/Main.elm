@@ -281,7 +281,9 @@ update msg model =
                                 { m | selected = Nothing }
 
                             else
-                                addConstraint id selected m
+                                m
+                                    |> addConstraint id selected
+                                    |> (\x -> { x | selected = Nothing })
 
                         Nothing ->
                             { m | selected = Just id }
