@@ -21,6 +21,8 @@ type alias Model =
     , idCounter : Int
     , constraints : Dict ( Int, Int ) Float
     , forces : List ( Bool, Vector2 )
+    , stepTime : Float
+    , timeAccum : Float
     }
 
 
@@ -58,6 +60,8 @@ init _ =
         [ ( False, Vector2.new 0 500 )
         , ( False, Vector2.new 200 0 )
         ]
+        0.02
+        0
         |> addParticleList
             [ ( -50, -50 )
             , ( 50, -50 )
@@ -106,32 +110,43 @@ type Msg
     | AddForce
 
 
+fixedUpdate : Float -> Model -> Model
+fixedUpdate dt model =
+    if dt >= model.stepTime then
+        let
+            sumForces =
+                List.foldl Vector2.add
+                    Vector2.zero
+                    (List.filterMap
+                        (\( e, f ) ->
+                            if e then
+                                Just f
+
+                            else
+                                Nothing
+                        )
+                        model.forces
+                    )
+        in
+        { model
+            | timeAccum = dt - model.stepTime
+            , particles =
+                model.particles
+                    |> Dict.map (\_ p -> Particle.step sumForces model.stepTime p)
+                    |> Dict.map (\_ p -> Particle.constrain 500 500 p)
+                    |> constrainParticles model.constraints
+        }
+            |> fixedUpdate (dt - model.stepTime)
+
+    else
+        { model | timeAccum = dt }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick dt ->
-            let
-                sumForces =
-                    List.foldl Vector2.add
-                        Vector2.zero
-                        (List.filterMap
-                            (\( e, f ) ->
-                                if e then
-                                    Just f
-
-                                else
-                                    Nothing
-                            )
-                            model.forces
-                        )
-            in
-            ( { model
-                | particles =
-                    model.particles
-                        |> Dict.map (\_ p -> Particle.step sumForces (dt / 1000) p)
-                        |> Dict.map (\_ p -> Particle.constrain 500 500 p)
-                        |> constrainParticles model.constraints
-              }
+            ( model |> fixedUpdate (model.timeAccum + (dt / 1000))
             , Cmd.none
             )
 
@@ -269,7 +284,7 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Browser.Events.onAnimationFrameDelta (min 20 >> Tick)
+    Browser.Events.onAnimationFrameDelta (min 2000 >> Tick)
 
 
 
