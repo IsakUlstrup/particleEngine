@@ -7,15 +7,23 @@ import Dict exposing (Dict)
 import Html exposing (Html, main_)
 import Html.Attributes
 import Html.Events
+import Json.Decode as Decode exposing (Decoder)
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import Svg exposing (Svg)
 import Svg.Attributes
+import Svg.Events
 import Task
 
 
 
 -- MODEL
+
+
+type alias Pointer =
+    { position : Vector2
+    , pressed : Bool
+    }
 
 
 type alias RenderConfig =
@@ -42,6 +50,7 @@ type alias Model =
     , stepTime : Float
     , timeAccum : Float
     , renderConfig : RenderConfig
+    , pointer : Pointer
     }
 
 
@@ -82,6 +91,7 @@ init _ =
         0.02
         0
         (RenderConfig 1000 1000)
+        (Pointer Vector2.zero False)
         |> addParticleList
             [ ( -50, -50 )
             , ( 50, -50 )
@@ -130,6 +140,7 @@ type Msg
     | AddForce
     | WindowResize
     | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
+    | PointerChanged Float Float Bool
 
 
 fixedUpdate : Float -> Model -> Model
@@ -168,7 +179,8 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick dt ->
-            ( model |> fixedUpdate (model.timeAccum + (dt / 1000))
+            ( model
+                |> fixedUpdate (model.timeAccum + (dt / 1000))
             , Cmd.none
             )
 
@@ -213,24 +225,28 @@ update msg model =
         GameViewResized (Err _) ->
             ( model, Cmd.none )
 
+        PointerChanged x y pressed ->
+            ( { model | pointer = Pointer (Vector2.new (x - model.renderConfig.width / 2) (y - model.renderConfig.height / 2)) pressed }, Cmd.none )
+
 
 
 -- VIEW
 
 
+transform : Float -> Float -> Svg.Attribute msg
+transform x y =
+    Svg.Attributes.transform <|
+        "translate("
+            ++ String.fromFloat x
+            ++ " "
+            ++ String.fromFloat y
+            ++ ")"
+
+
 viewParticle : ( Int, Particle ) -> Svg msg
 viewParticle ( _, particle ) =
-    let
-        transform =
-            Svg.Attributes.transform <|
-                "translate("
-                    ++ String.fromFloat particle.position.x
-                    ++ " "
-                    ++ String.fromFloat particle.position.y
-                    ++ ")"
-    in
     Svg.circle
-        [ transform
+        [ transform particle.position.x particle.position.y
         , Svg.Attributes.r <| String.fromInt (round Particle.radius)
         , Svg.Attributes.fill "beige"
         ]
@@ -294,6 +310,25 @@ viewSidebarForces forces =
         ]
 
 
+viewPointer : Pointer -> Svg msg
+viewPointer pointer =
+    let
+        fillColor =
+            if pointer.pressed then
+                "beige"
+
+            else
+                "none"
+    in
+    Svg.circle
+        [ transform pointer.position.x pointer.position.y
+        , Svg.Attributes.r "20"
+        , Svg.Attributes.stroke "beige"
+        , Svg.Attributes.fill fillColor
+        ]
+        []
+
+
 viewBox : RenderConfig -> Svg.Attribute msg
 viewBox config =
     Svg.Attributes.viewBox <|
@@ -313,6 +348,10 @@ view model =
         , Svg.svg
             [ viewBox model.renderConfig
             , Svg.Attributes.id "game-view"
+            , Svg.Events.on "pointermove" pointerDecoder
+            , Svg.Events.on "pointerdown" pointerDecoder
+            , Svg.Events.on "pointerup" pointerDecoder
+            , Svg.Events.on "pointercancel" pointerDecoder
             ]
             [ Svg.rect
                 [ Svg.Attributes.width <| String.fromFloat model.renderConfig.width
@@ -324,12 +363,27 @@ view model =
                 []
             , Svg.g [] (Dict.toList model.constraints |> List.filterMap (viewConstraint model.particles))
             , Svg.g [] (Dict.toList model.particles |> List.map viewParticle)
+            , viewPointer model.pointer
             ]
         ]
 
 
 
 -- SUBSCRIPTIONS
+
+
+pressedDecoder : Decoder Bool
+pressedDecoder =
+    Decode.field "buttons" Decode.float
+        |> Decode.map (\p -> p > 0)
+
+
+pointerDecoder : Decoder Msg
+pointerDecoder =
+    Decode.map3 PointerChanged
+        (Decode.field "offsetX" Decode.float)
+        (Decode.field "offsetY" Decode.float)
+        pressedDecoder
 
 
 gameResize : Cmd Msg
