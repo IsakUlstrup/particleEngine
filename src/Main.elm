@@ -1,6 +1,7 @@
 module Main exposing (Model, Msg, main)
 
 import Browser
+import Browser.Dom
 import Browser.Events
 import Dict exposing (Dict)
 import Html exposing (Html, main_)
@@ -10,6 +11,7 @@ import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import Svg exposing (Svg)
 import Svg.Attributes
+import Task
 
 
 
@@ -20,6 +22,16 @@ type alias RenderConfig =
     { width : Float
     , height : Float
     }
+
+
+setWidth : Float -> RenderConfig -> RenderConfig
+setWidth width config =
+    { config | width = width }
+
+
+setHeight : Float -> RenderConfig -> RenderConfig
+setHeight height config =
+    { config | height = height }
 
 
 type alias Model =
@@ -82,7 +94,7 @@ init _ =
         |> addConstraint 3 0 100
         |> addConstraint 0 2 141.42
         |> addConstraint 1 3 141.42
-    , Cmd.none
+    , gameResize
     )
 
 
@@ -116,6 +128,8 @@ type Msg
     | ToggleForce Int
     | SetForce Int Vector2
     | AddForce
+    | WindowResize
+    | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
 
 
 fixedUpdate : Float -> Model -> Model
@@ -141,7 +155,7 @@ fixedUpdate dt model =
             , particles =
                 model.particles
                     |> Dict.map (\_ p -> Particle.step sumForces model.stepTime p)
-                    |> Dict.map (\_ p -> Particle.constrain 500 500 p)
+                    |> Dict.map (\_ p -> Particle.constrain (model.renderConfig.width / 2) (model.renderConfig.height / 2) p)
                     |> constrainParticles model.constraints
         }
             |> fixedUpdate (dt - model.stepTime)
@@ -182,6 +196,22 @@ update msg model =
 
         AddForce ->
             ( { model | forces = ( False, Vector2.zero ) :: model.forces }, Cmd.none )
+
+        WindowResize ->
+            ( model, gameResize )
+
+        GameViewResized (Ok element) ->
+            ( { model
+                | renderConfig =
+                    model.renderConfig
+                        |> setWidth element.element.width
+                        |> setHeight element.element.height
+              }
+            , Cmd.none
+            )
+
+        GameViewResized (Err _) ->
+            ( model, Cmd.none )
 
 
 
@@ -282,7 +312,7 @@ view model =
         [ Html.section [ Html.Attributes.class "sidebar" ] [ viewSidebarForces model.forces ]
         , Svg.svg
             [ viewBox model.renderConfig
-            , Svg.Attributes.class "game-view"
+            , Svg.Attributes.id "game-view"
             ]
             [ Svg.rect
                 [ Svg.Attributes.width <| String.fromFloat model.renderConfig.width
@@ -302,9 +332,17 @@ view model =
 -- SUBSCRIPTIONS
 
 
+gameResize : Cmd Msg
+gameResize =
+    Browser.Dom.getElement "game-view" |> Task.attempt GameViewResized
+
+
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Browser.Events.onAnimationFrameDelta (min 2000 >> Tick)
+    Sub.batch
+        [ Browser.Events.onAnimationFrameDelta (min 2000 >> Tick)
+        , Browser.Events.onResize (\_ _ -> WindowResize)
+        ]
 
 
 
