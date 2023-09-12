@@ -47,6 +47,7 @@ type alias Model =
     , forces : List ( Bool, Vector2 )
     , stepTime : Float
     , timeAccum : Float
+    , dtMultiplier : Float
     , renderConfig : RenderConfig
     , dtHistory : List Float
     , selected : Maybe Int
@@ -101,6 +102,7 @@ init _ =
         ]
         0.02
         0
+        1
         (RenderConfig 1000 1000)
         []
         Nothing
@@ -158,11 +160,17 @@ type Msg
     | WindowResize
     | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
     | ClickedParticle Int
+    | SetDtMultiplier Float
 
 
 fixedUpdate : Float -> Model -> Model
 fixedUpdate dt model =
-    if dt >= model.stepTime then
+    let
+        adjustedDt : Float
+        adjustedDt =
+            dt * model.dtMultiplier
+    in
+    if adjustedDt >= model.stepTime then
         let
             sumForces : Vector2
             sumForces =
@@ -180,7 +188,7 @@ fixedUpdate dt model =
                     )
         in
         { model
-            | timeAccum = dt - model.stepTime
+            | timeAccum = adjustedDt - model.stepTime
             , particles =
                 model.particles
                     |> Dict.map (\_ p -> Particle.applyForce sumForces p)
@@ -188,10 +196,10 @@ fixedUpdate dt model =
                     |> Dict.map (\_ p -> Particle.constrain (model.renderConfig.width / 2) (model.renderConfig.height / 2) p)
                     |> constrainParticles model.constraints
         }
-            |> fixedUpdate (dt - model.stepTime)
+            |> fixedUpdate (adjustedDt - model.stepTime)
 
     else
-        { model | timeAccum = model.timeAccum + dt }
+        { model | timeAccum = model.timeAccum + adjustedDt }
 
 
 addToDtHistory : Float -> Model -> Model
@@ -274,6 +282,9 @@ update msg model =
                             { m | selected = Just id }
             in
             ( toggle model, Cmd.none )
+
+        SetDtMultiplier multi ->
+            ( { model | dtMultiplier = multi }, Cmd.none )
 
 
 
@@ -404,6 +415,22 @@ viewSidebarStats model =
         ]
 
 
+viewSidebarTimeControls : Float -> Html Msg
+viewSidebarTimeControls dtMulti =
+    Html.details []
+        [ Html.summary [] [ Html.text "Time" ]
+        , Html.p [] [ Html.text <| String.fromFloat dtMulti ]
+        , Html.input
+            [ Html.Attributes.type_ "range"
+            , Html.Attributes.max "1"
+            , Html.Attributes.step "0.1"
+            , Html.Attributes.value <| String.fromFloat dtMulti
+            , Html.Events.onInput (String.toFloat >> Maybe.withDefault 1 >> SetDtMultiplier)
+            ]
+            []
+        ]
+
+
 viewBox : RenderConfig -> Svg.Attribute msg
 viewBox config =
     Svg.Attributes.viewBox <|
@@ -422,6 +449,7 @@ view model =
         [ Html.section [ Html.Attributes.class "sidebar" ]
             [ viewSidebarForces model.forces
             , viewSidebarStats model
+            , viewSidebarTimeControls model.dtMultiplier
             ]
         , Svg.svg
             [ viewBox model.renderConfig
