@@ -62,9 +62,16 @@ addParticle particle model =
     }
 
 
-addConstraint : Int -> Int -> Float -> Model -> Model
-addConstraint from to length model =
-    { model | constraints = model.constraints |> Dict.insert ( from, to ) length }
+addConstraint : Int -> Int -> Model -> Model
+addConstraint from to model =
+    case particleDistance from to model.particles of
+        Just dist ->
+            -- make constraint
+            -- addConstraint id selected dist m
+            { model | constraints = model.constraints |> Dict.insert ( from, to ) dist }
+
+        Nothing ->
+            model
 
 
 particleDistance : Int -> Int -> Dict Int Particle -> Maybe Float
@@ -112,12 +119,12 @@ init _ =
             , ( 50, 50 )
             , ( -50, 50 )
             ]
-        |> addConstraint 0 1 100
-        |> addConstraint 1 2 100
-        |> addConstraint 2 3 100
-        |> addConstraint 3 0 100
-        |> addConstraint 0 2 141.42
-        |> addConstraint 1 3 141.42
+        |> addConstraint 0 1
+        |> addConstraint 1 2
+        |> addConstraint 2 3
+        |> addConstraint 3 0
+        |> addConstraint 0 2
+        |> addConstraint 1 3
         |> addParticleList
             [ ( -250, -250 )
             , ( 250, -250 )
@@ -274,13 +281,7 @@ update msg model =
                                 { m | selected = Nothing }
 
                             else
-                                case particleDistance id selected m.particles of
-                                    Just dist ->
-                                        -- make constraint
-                                        addConstraint id selected dist m
-
-                                    Nothing ->
-                                        m
+                                addConstraint id selected m
 
                         Nothing ->
                             { m | selected = Just id }
