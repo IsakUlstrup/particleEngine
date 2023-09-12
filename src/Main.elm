@@ -1,4 +1,4 @@
-module Main exposing (Model, Msg, main)
+module Main exposing (Model, Msg, Pointer, PointerMode, RenderConfig, main)
 
 import Browser
 import Browser.Dom
@@ -78,9 +78,11 @@ addConstraint from to length model =
 addParticleList : List ( Float, Float ) -> Model -> Model
 addParticleList positions model =
     let
+        particle : ( Float, Float ) -> Particle
         particle ( x, y ) =
             Particle.new (Vector2.new x y) 1
 
+        particles : List Particle
         particles =
             List.map particle positions
     in
@@ -170,6 +172,7 @@ fixedUpdate : Float -> Model -> Model
 fixedUpdate dt model =
     if dt >= model.stepTime then
         let
+            sumForces : Vector2
             sumForces =
                 List.foldl Vector2.add
                     Vector2.zero
@@ -229,6 +232,7 @@ update msg model =
 
         ToggleForce targetIndex ->
             let
+                toggleForce : Int -> ( Bool, Vector2 ) -> ( Bool, Vector2 )
                 toggleForce index force =
                     if targetIndex == index then
                         Tuple.mapFirst not force
@@ -240,6 +244,7 @@ update msg model =
 
         SetForce targetIndex newForce ->
             let
+                setForce : Int -> ( Bool, Vector2 ) -> ( Bool, Vector2 )
                 setForce index force =
                     if index == targetIndex then
                         Tuple.mapSecond (always newForce) force
@@ -300,7 +305,7 @@ viewParticle ( _, particle ) =
 
 
 viewConstraint : Dict Int Particle -> ( ( Int, Int ), Float ) -> Maybe (Svg msg)
-viewConstraint particles ( ( from, to ), length ) =
+viewConstraint particles ( ( from, to ), _ ) =
     case ( Dict.get from particles, Dict.get to particles ) of
         ( Just origin, Just target ) ->
             Just <|
@@ -320,6 +325,7 @@ viewConstraint particles ( ( from, to ), length ) =
 viewSidebarForces : List ( Bool, Vector2 ) -> Html Msg
 viewSidebarForces forces =
     let
+        viewForce : Int -> ( Bool, Vector2 ) -> Html Msg
         viewForce index ( enabled, force ) =
             Html.li []
                 [ Html.input
@@ -376,6 +382,7 @@ viewSidebarStats model =
                 |> List.head
                 |> Maybe.withDefault "-"
 
+        particleCount : Int
         particleCount =
             Dict.toList model.particles |> List.length
     in
@@ -414,6 +421,7 @@ viewSidebarPointerMode _ =
 viewPointer : Pointer -> Svg msg
 viewPointer pointer =
     let
+        fillColor : String
         fillColor =
             if pointer.pressed then
                 "beige"

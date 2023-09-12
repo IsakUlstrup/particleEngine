@@ -65,6 +65,7 @@ step dt particle =
 constrain : Float -> Float -> Particle -> Particle
 constrain width height particle =
     let
+        vel : Vector2
         vel =
             velocity particle
     in
@@ -99,15 +100,19 @@ constrain width height particle =
 constrainStick : Float -> ( Particle, Particle ) -> ( Particle, Particle )
 constrainStick length ( p1, p2 ) =
     let
+        dist : Float
         dist =
             Vector2.distance p1.position p2.position
 
+        diff : Float
         diff =
             length - dist
 
+        percent : Float
         percent =
             (diff / dist) / 2
 
+        offset : Vector2
         offset =
             Vector2.scale percent (Vector2.subtract p1.position p2.position)
     in

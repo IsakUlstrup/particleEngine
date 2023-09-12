@@ -9,7 +9,6 @@ module ParticleEngine.Vector2 exposing
     , new
     , scale
     , subtract
-    , toString
     , zero
     )
 
@@ -98,8 +97,3 @@ direction origin target =
 zero : Vector2
 zero =
     new 0 0
-
-
-toString : Vector2 -> String
-toString vector =
-    "(x: " ++ String.fromFloat vector.x ++ ", y: " ++ String.fromFloat vector.y ++ ")"
