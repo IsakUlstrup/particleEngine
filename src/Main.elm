@@ -1,4 +1,9 @@
-module Main exposing (Model, Msg, Pointer, PointerMode, RenderConfig, main)
+module Main exposing
+    ( Model
+    , Msg
+    , RenderConfig
+    , main
+    )
 
 import Browser
 import Browser.Dom
@@ -7,7 +12,6 @@ import Dict exposing (Dict)
 import Html exposing (Html, main_)
 import Html.Attributes
 import Html.Events
-import Json.Decode as Decode exposing (Decoder)
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import Svg exposing (Svg)
@@ -18,18 +22,6 @@ import Task
 
 
 -- MODEL
-
-
-type PointerMode
-    = CreateParticle
-    | SelectParticle
-
-
-type alias Pointer =
-    { position : Vector2
-    , pressed : Bool
-    , mode : PointerMode
-    }
 
 
 type alias RenderConfig =
@@ -56,7 +48,6 @@ type alias Model =
     , stepTime : Float
     , timeAccum : Float
     , renderConfig : RenderConfig
-    , pointer : Pointer
     , dtHistory : List Float
     , selected : Maybe Int
     }
@@ -73,6 +64,16 @@ addParticle particle model =
 addConstraint : Int -> Int -> Float -> Model -> Model
 addConstraint from to length model =
     { model | constraints = model.constraints |> Dict.insert ( from, to ) length }
+
+
+particleDistance : Int -> Int -> Dict Int Particle -> Maybe Float
+particleDistance one two particles =
+    case ( Dict.get one particles, Dict.get two particles ) of
+        ( Just p1, Just p2 ) ->
+            Just <| Vector2.distance p1.position p2.position
+
+        _ ->
+            Nothing
 
 
 addParticleList : List ( Float, Float ) -> Model -> Model
@@ -101,7 +102,6 @@ init _ =
         0.02
         0
         (RenderConfig 1000 1000)
-        (Pointer Vector2.zero False CreateParticle)
         []
         Nothing
         |> addParticleList
@@ -116,6 +116,11 @@ init _ =
         |> addConstraint 3 0 100
         |> addConstraint 0 2 141.42
         |> addConstraint 1 3 141.42
+        |> addParticleList
+            [ ( -250, -250 )
+            , ( 250, -250 )
+            , ( 250, 250 )
+            ]
     , gameResize
     )
 
@@ -152,23 +157,7 @@ type Msg
     | AddForce
     | WindowResize
     | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
-    | PointerChanged Float Float Bool
-    | SetPointerMode PointerMode
     | ClickedParticle Int
-
-
-pointerForce : Maybe Int -> Pointer -> ( Int, Particle ) -> Vector2
-pointerForce selected pointer ( pid, particle ) =
-    case ( pointer.pressed, pointer.mode, selected ) of
-        ( True, SelectParticle, Just id ) ->
-            if pid == id then
-                Vector2.direction particle.position pointer.position |> Vector2.scale 50
-
-            else
-                Vector2.zero
-
-        _ ->
-            Vector2.zero
 
 
 fixedUpdate : Float -> Model -> Model
@@ -195,26 +184,14 @@ fixedUpdate dt model =
             , particles =
                 model.particles
                     |> Dict.map (\_ p -> Particle.applyForce sumForces p)
-                    |> Dict.map (\id p -> Particle.applyForce (pointerForce model.selected model.pointer ( id, p )) p)
                     |> Dict.map (\_ p -> Particle.step model.stepTime p)
                     |> Dict.map (\_ p -> Particle.constrain (model.renderConfig.width / 2) (model.renderConfig.height / 2) p)
                     |> constrainParticles model.constraints
         }
-            |> pointerAction
             |> fixedUpdate (dt - model.stepTime)
 
     else
         { model | timeAccum = model.timeAccum + dt }
-
-
-pointerAction : Model -> Model
-pointerAction model =
-    case ( model.pointer.pressed, model.pointer.mode ) of
-        ( True, CreateParticle ) ->
-            addParticle (Particle.new model.pointer.position 1) model
-
-        _ ->
-            model
 
 
 addToDtHistory : Float -> Model -> Model
@@ -228,7 +205,6 @@ update msg model =
         Tick dt ->
             ( model
                 |> fixedUpdate (model.timeAccum + (dt / 1000))
-                |> pointerAction
                 |> addToDtHistory dt
             , Cmd.none
             )
@@ -276,14 +252,28 @@ update msg model =
         GameViewResized (Err _) ->
             ( model, Cmd.none )
 
-        PointerChanged x y pressed ->
-            ( { model | pointer = Pointer (Vector2.new (x - model.renderConfig.width / 2) (y - model.renderConfig.height / 2)) pressed model.pointer.mode }, Cmd.none )
-
-        SetPointerMode mode ->
-            ( { model | pointer = Pointer model.pointer.position model.pointer.pressed mode }, Cmd.none )
-
         ClickedParticle id ->
-            ( { model | selected = Just id }, Cmd.none )
+            let
+                toggle : Model -> Model
+                toggle m =
+                    case m.selected of
+                        Just selected ->
+                            if selected == id then
+                                { m | selected = Nothing }
+
+                            else
+                                case particleDistance id selected m.particles of
+                                    Just dist ->
+                                        -- make constraint
+                                        addConstraint id selected dist m
+
+                                    Nothing ->
+                                        m
+
+                        Nothing ->
+                            { m | selected = Just id }
+            in
+            ( toggle model, Cmd.none )
 
 
 
@@ -414,45 +404,6 @@ viewSidebarStats model =
         ]
 
 
-viewSidebarPointerMode : PointerMode -> Html Msg
-viewSidebarPointerMode _ =
-    Html.details []
-        [ Html.summary [] [ Html.text "Pointer Mode" ]
-        , Html.input
-            [ Html.Attributes.type_ "button"
-            , Html.Attributes.value "Create particle"
-            , Html.Events.onClick <| SetPointerMode CreateParticle
-            ]
-            []
-        , Html.input
-            [ Html.Attributes.type_ "button"
-            , Html.Attributes.value "Select particles"
-            , Html.Events.onClick <| SetPointerMode SelectParticle
-            ]
-            []
-        ]
-
-
-viewPointer : Pointer -> Svg msg
-viewPointer pointer =
-    let
-        fillColor : String
-        fillColor =
-            if pointer.pressed then
-                "beige"
-
-            else
-                "none"
-    in
-    Svg.circle
-        [ transform pointer.position.x pointer.position.y
-        , Svg.Attributes.r "20"
-        , Svg.Attributes.stroke "beige"
-        , Svg.Attributes.fill fillColor
-        ]
-        []
-
-
 viewBox : RenderConfig -> Svg.Attribute msg
 viewBox config =
     Svg.Attributes.viewBox <|
@@ -471,7 +422,6 @@ view model =
         [ Html.section [ Html.Attributes.class "sidebar" ]
             [ viewSidebarForces model.forces
             , viewSidebarStats model
-            , viewSidebarPointerMode model.pointer.mode
             ]
         , Svg.svg
             [ viewBox model.renderConfig
@@ -483,35 +433,16 @@ view model =
                 , Svg.Attributes.x <| String.fromFloat -(model.renderConfig.width / 2)
                 , Svg.Attributes.y <| String.fromFloat -(model.renderConfig.height / 2)
                 , Svg.Attributes.class "constraint"
-                , Svg.Events.on "pointermove" pointerDecoder
-                , Svg.Events.on "pointerdown" pointerDecoder
-                , Svg.Events.on "pointerup" pointerDecoder
-                , Svg.Events.on "pointercancel" pointerDecoder
                 ]
                 []
             , Svg.g [] (Dict.toList model.constraints |> List.filterMap (viewConstraint model.particles))
             , Svg.g [] (Dict.toList model.particles |> List.map (viewParticle model.selected))
-            , viewPointer model.pointer
             ]
         ]
 
 
 
 -- SUBSCRIPTIONS
-
-
-pressedDecoder : Decoder Bool
-pressedDecoder =
-    Decode.field "buttons" Decode.float
-        |> Decode.map (\p -> p > 0)
-
-
-pointerDecoder : Decoder Msg
-pointerDecoder =
-    Decode.map3 PointerChanged
-        (Decode.field "offsetX" Decode.float)
-        (Decode.field "offsetY" Decode.float)
-        pressedDecoder
 
 
 gameResize : Cmd Msg
