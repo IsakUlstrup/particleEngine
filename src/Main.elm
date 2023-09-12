@@ -51,6 +51,7 @@ type alias Model =
     , timeAccum : Float
     , renderConfig : RenderConfig
     , pointer : Pointer
+    , dtHistory : List Float
     }
 
 
@@ -92,6 +93,7 @@ init _ =
         0
         (RenderConfig 1000 1000)
         (Pointer Vector2.zero False)
+        []
         |> addParticleList
             [ ( -50, -50 )
             , ( 50, -50 )
@@ -175,12 +177,28 @@ fixedUpdate dt model =
         { model | timeAccum = model.timeAccum + dt }
 
 
+addParticleIsPointerPressed : Model -> Model
+addParticleIsPointerPressed model =
+    if model.pointer.pressed then
+        addParticle (Particle.new model.pointer.position 1) model
+
+    else
+        model
+
+
+addToDtHistory : Float -> Model -> Model
+addToDtHistory dt model =
+    { model | dtHistory = dt :: model.dtHistory |> List.take 20 }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick dt ->
             ( model
                 |> fixedUpdate (model.timeAccum + (dt / 1000))
+                |> addParticleIsPointerPressed
+                |> addToDtHistory dt
             , Cmd.none
             )
 
@@ -310,6 +328,36 @@ viewSidebarForces forces =
         ]
 
 
+viewSidebarStats : Model -> Html msg
+viewSidebarStats model =
+    let
+        fpsString : List Float -> String
+        fpsString dts =
+            let
+                averageDelta : Float
+                averageDelta =
+                    List.sum dts / toFloat (List.length dts)
+
+                averageFps : Float
+                averageFps =
+                    1000 / averageDelta
+            in
+            averageFps
+                |> String.fromFloat
+                |> String.split "."
+                |> List.head
+                |> Maybe.withDefault "-"
+
+        particleCount =
+            Dict.toList model.particles |> List.length
+    in
+    Html.details []
+        [ Html.summary [] [ Html.text "Stats" ]
+        , Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.dtHistory ]
+        , Html.p [] [ Html.text <| "Particle count: " ++ String.fromInt particleCount ]
+        ]
+
+
 viewPointer : Pointer -> Svg msg
 viewPointer pointer =
     let
@@ -344,7 +392,10 @@ viewBox config =
 view : Model -> Html Msg
 view model =
     main_ [ Html.Attributes.id "app" ]
-        [ Html.section [ Html.Attributes.class "sidebar" ] [ viewSidebarForces model.forces ]
+        [ Html.section [ Html.Attributes.class "sidebar" ]
+            [ viewSidebarForces model.forces
+            , viewSidebarStats model
+            ]
         , Svg.svg
             [ viewBox model.renderConfig
             , Svg.Attributes.id "game-view"
