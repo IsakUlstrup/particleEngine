@@ -163,6 +163,7 @@ type Msg
     | WindowResize
     | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
     | ClickedParticle Int
+    | ClickedConstraint ( Int, Int )
     | SetDtMultiplier Float
 
 
@@ -286,6 +287,14 @@ update msg model =
             in
             ( toggle model, Cmd.none )
 
+        ClickedConstraint constraintIds ->
+            let
+                keepConstraint : ( Int, Int ) -> Float -> Bool
+                keepConstraint ids _ =
+                    ids /= constraintIds
+            in
+            ( { model | constraints = Dict.filter keepConstraint model.constraints }, Cmd.none )
+
         SetDtMultiplier multi ->
             ( { model | dtMultiplier = multi }, Cmd.none )
 
@@ -325,11 +334,12 @@ viewParticle selected ( id, particle ) =
         , Svg.Attributes.r <| String.fromInt (round Particle.radius)
         , Svg.Attributes.fill fillColor
         , Svg.Events.onClick <| ClickedParticle id
+        , Svg.Attributes.class "particle"
         ]
         []
 
 
-viewConstraint : Dict Int Particle -> ( ( Int, Int ), Float ) -> Maybe (Svg msg)
+viewConstraint : Dict Int Particle -> ( ( Int, Int ), Float ) -> Maybe (Svg Msg)
 viewConstraint particles ( ( from, to ), _ ) =
     case ( Dict.get from particles, Dict.get to particles ) of
         ( Just origin, Just target ) ->
@@ -340,6 +350,9 @@ viewConstraint particles ( ( from, to ), _ ) =
                     , Svg.Attributes.x2 <| String.fromFloat target.position.x
                     , Svg.Attributes.y2 <| String.fromFloat target.position.y
                     , Svg.Attributes.stroke "beige"
+                    , Svg.Attributes.strokeWidth "2"
+                    , Svg.Events.onClick <| ClickedConstraint ( from, to )
+                    , Svg.Attributes.class "constraint"
                     ]
                     []
 
