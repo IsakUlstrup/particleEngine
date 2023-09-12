@@ -444,6 +444,18 @@ viewSidebarTimeControls dtMulti =
             , Html.Events.onInput (String.toFloat >> Maybe.withDefault 1 >> SetDtMultiplier)
             ]
             []
+        , Html.input
+            [ Html.Attributes.type_ "button"
+            , Html.Attributes.value "Pause"
+            , Html.Events.onClick <| SetDtMultiplier 0
+            ]
+            []
+        , Html.input
+            [ Html.Attributes.type_ "button"
+            , Html.Attributes.value "Resume"
+            , Html.Events.onClick <| SetDtMultiplier 1
+            ]
+            []
         ]
 
 
