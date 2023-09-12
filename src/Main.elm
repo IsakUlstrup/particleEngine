@@ -22,8 +22,7 @@ import Task
 
 type PointerMode
     = CreateParticle
-    | AttractParticles
-    | RepelParticles
+    | SelectParticle
 
 
 type alias Pointer =
@@ -59,6 +58,7 @@ type alias Model =
     , renderConfig : RenderConfig
     , pointer : Pointer
     , dtHistory : List Float
+    , selected : Maybe Int
     }
 
 
@@ -103,6 +103,7 @@ init _ =
         (RenderConfig 1000 1000)
         (Pointer Vector2.zero False CreateParticle)
         []
+        Nothing
         |> addParticleList
             [ ( -50, -50 )
             , ( 50, -50 )
@@ -153,16 +154,18 @@ type Msg
     | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
     | PointerChanged Float Float Bool
     | SetPointerMode PointerMode
+    | ClickedParticle Int
 
 
-pointerForce : Pointer -> Particle -> Vector2
-pointerForce pointer particle =
-    case ( pointer.pressed, pointer.mode ) of
-        ( True, AttractParticles ) ->
-            Vector2.direction particle.position pointer.position |> Vector2.scale 50
+pointerForce : Maybe Int -> Pointer -> ( Int, Particle ) -> Vector2
+pointerForce selected pointer ( pid, particle ) =
+    case ( pointer.pressed, pointer.mode, selected ) of
+        ( True, SelectParticle, Just id ) ->
+            if pid == id then
+                Vector2.direction particle.position pointer.position |> Vector2.scale 50
 
-        ( True, RepelParticles ) ->
-            Vector2.direction pointer.position particle.position |> Vector2.scale 50
+            else
+                Vector2.zero
 
         _ ->
             Vector2.zero
@@ -192,7 +195,7 @@ fixedUpdate dt model =
             , particles =
                 model.particles
                     |> Dict.map (\_ p -> Particle.applyForce sumForces p)
-                    |> Dict.map (\_ p -> Particle.applyForce (pointerForce model.pointer p) p)
+                    |> Dict.map (\id p -> Particle.applyForce (pointerForce model.selected model.pointer ( id, p )) p)
                     |> Dict.map (\_ p -> Particle.step model.stepTime p)
                     |> Dict.map (\_ p -> Particle.constrain (model.renderConfig.width / 2) (model.renderConfig.height / 2) p)
                     |> constrainParticles model.constraints
@@ -279,6 +282,9 @@ update msg model =
         SetPointerMode mode ->
             ( { model | pointer = Pointer model.pointer.position model.pointer.pressed mode }, Cmd.none )
 
+        ClickedParticle id ->
+            ( { model | selected = Just id }, Cmd.none )
+
 
 
 -- VIEW
@@ -294,12 +300,27 @@ transform x y =
             ++ ")"
 
 
-viewParticle : ( Int, Particle ) -> Svg msg
-viewParticle ( _, particle ) =
+viewParticle : Maybe Int -> ( Int, Particle ) -> Svg Msg
+viewParticle selected ( id, particle ) =
+    let
+        fillColor : String
+        fillColor =
+            case selected of
+                Just selId ->
+                    if selId == id then
+                        "magenta"
+
+                    else
+                        "beige"
+
+                _ ->
+                    "beige"
+    in
     Svg.circle
         [ transform particle.position.x particle.position.y
         , Svg.Attributes.r <| String.fromInt (round Particle.radius)
-        , Svg.Attributes.fill "beige"
+        , Svg.Attributes.fill fillColor
+        , Svg.Events.onClick <| ClickedParticle id
         ]
         []
 
@@ -405,14 +426,8 @@ viewSidebarPointerMode _ =
             []
         , Html.input
             [ Html.Attributes.type_ "button"
-            , Html.Attributes.value "Attract particles"
-            , Html.Events.onClick <| SetPointerMode AttractParticles
-            ]
-            []
-        , Html.input
-            [ Html.Attributes.type_ "button"
-            , Html.Attributes.value "Repel particles"
-            , Html.Events.onClick <| SetPointerMode RepelParticles
+            , Html.Attributes.value "Select particles"
+            , Html.Events.onClick <| SetPointerMode SelectParticle
             ]
             []
         ]
@@ -461,10 +476,6 @@ view model =
         , Svg.svg
             [ viewBox model.renderConfig
             , Svg.Attributes.id "game-view"
-            , Svg.Events.on "pointermove" pointerDecoder
-            , Svg.Events.on "pointerdown" pointerDecoder
-            , Svg.Events.on "pointerup" pointerDecoder
-            , Svg.Events.on "pointercancel" pointerDecoder
             ]
             [ Svg.rect
                 [ Svg.Attributes.width <| String.fromFloat model.renderConfig.width
@@ -472,10 +483,14 @@ view model =
                 , Svg.Attributes.x <| String.fromFloat -(model.renderConfig.width / 2)
                 , Svg.Attributes.y <| String.fromFloat -(model.renderConfig.height / 2)
                 , Svg.Attributes.class "constraint"
+                , Svg.Events.on "pointermove" pointerDecoder
+                , Svg.Events.on "pointerdown" pointerDecoder
+                , Svg.Events.on "pointerup" pointerDecoder
+                , Svg.Events.on "pointercancel" pointerDecoder
                 ]
                 []
             , Svg.g [] (Dict.toList model.constraints |> List.filterMap (viewConstraint model.particles))
-            , Svg.g [] (Dict.toList model.particles |> List.map viewParticle)
+            , Svg.g [] (Dict.toList model.particles |> List.map (viewParticle model.selected))
             , viewPointer model.pointer
             ]
         ]
