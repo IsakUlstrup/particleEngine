@@ -114,7 +114,7 @@ constrainStick length ( p1, p2 ) =
 
         offset : Vector2
         offset =
-            Vector2.scale percent (Vector2.subtract p1.position p2.position)
+            Vector2.scale (percent * 0.1) (Vector2.subtract p1.position p2.position)
     in
     ( { p1 | position = p1.position |> Vector2.subtract offset }
     , { p2 | position = p2.position |> Vector2.add offset }
