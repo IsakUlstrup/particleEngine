@@ -350,7 +350,7 @@ viewConstraint particles ( ( from, to ), _ ) =
                     , Svg.Attributes.x2 <| String.fromFloat target.position.x
                     , Svg.Attributes.y2 <| String.fromFloat target.position.y
                     , Svg.Attributes.stroke "beige"
-                    , Svg.Attributes.strokeWidth "2"
+                    , Svg.Attributes.strokeWidth "3"
                     , Svg.Events.onClick <| ClickedConstraint ( from, to )
                     , Svg.Attributes.class "constraint"
                     ]
@@ -476,7 +476,7 @@ view model =
                 , Svg.Attributes.height <| String.fromFloat model.renderConfig.height
                 , Svg.Attributes.x <| String.fromFloat -(model.renderConfig.width / 2)
                 , Svg.Attributes.y <| String.fromFloat -(model.renderConfig.height / 2)
-                , Svg.Attributes.class "constraint"
+                , Svg.Attributes.class "bounds"
                 ]
                 []
             , Svg.g [] (Dict.toList model.constraints |> List.filterMap (viewConstraint model.particles))
