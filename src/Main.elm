@@ -16,6 +16,12 @@ import Svg.Attributes
 -- MODEL
 
 
+type alias RenderConfig =
+    { width : Float
+    , height : Float
+    }
+
+
 type alias Model =
     { particles : Dict Int Particle
     , idCounter : Int
@@ -23,6 +29,7 @@ type alias Model =
     , forces : List ( Bool, Vector2 )
     , stepTime : Float
     , timeAccum : Float
+    , renderConfig : RenderConfig
     }
 
 
@@ -62,6 +69,7 @@ init _ =
         ]
         0.02
         0
+        (RenderConfig 1000 1000)
         |> addParticleList
             [ ( -50, -50 )
             , ( 50, -50 )
@@ -256,19 +264,31 @@ viewSidebarForces forces =
         ]
 
 
+viewBox : RenderConfig -> Svg.Attribute msg
+viewBox config =
+    Svg.Attributes.viewBox <|
+        String.fromFloat -(config.width / 2)
+            ++ " "
+            ++ String.fromFloat -(config.height / 2)
+            ++ " "
+            ++ String.fromFloat config.width
+            ++ " "
+            ++ String.fromFloat config.height
+
+
 view : Model -> Html Msg
 view model =
     main_ [ Html.Attributes.id "app" ]
         [ Html.section [ Html.Attributes.class "sidebar" ] [ viewSidebarForces model.forces ]
         , Svg.svg
-            [ Svg.Attributes.viewBox "-500 -500 1000 1000"
+            [ viewBox model.renderConfig
             , Svg.Attributes.class "game-view"
             ]
             [ Svg.rect
-                [ Svg.Attributes.width "1000"
-                , Svg.Attributes.height "1000"
-                , Svg.Attributes.x "-500"
-                , Svg.Attributes.y "-500"
+                [ Svg.Attributes.width <| String.fromFloat model.renderConfig.width
+                , Svg.Attributes.height <| String.fromFloat model.renderConfig.height
+                , Svg.Attributes.x <| String.fromFloat -(model.renderConfig.width / 2)
+                , Svg.Attributes.y <| String.fromFloat -(model.renderConfig.height / 2)
                 , Svg.Attributes.class "constraint"
                 ]
                 []
