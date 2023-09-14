@@ -386,26 +386,38 @@ viewSidebarForces forces =
         viewForce : Int -> ( Bool, Vector2 ) -> Html Msg
         viewForce index ( enabled, force ) =
             Html.li []
-                [ Html.input
-                    [ Html.Attributes.type_ "checkbox"
-                    , Html.Attributes.checked enabled
-                    , Html.Events.onClick (ToggleForce index)
+                [ Html.div []
+                    [ Html.input
+                        [ Html.Attributes.type_ "checkbox"
+                        , Html.Attributes.checked enabled
+                        , Html.Events.onClick (ToggleForce index)
+                        , Html.Attributes.id <| "force-enabled" ++ String.fromInt index
+                        ]
+                        []
+                    , Html.label [ Html.Attributes.for <| "force-enabled" ++ String.fromInt index ] [ Html.text "Enabled" ]
                     ]
-                    []
-                , Html.input
-                    [ Html.Attributes.type_ "number"
-                    , Html.Attributes.value <| String.fromFloat force.x
-                    , Html.Attributes.step "0.1"
-                    , Html.Events.onInput (\i -> SetForce index (Vector2.mapX (always (Maybe.withDefault 0 (String.toFloat i))) force))
+                , Html.div []
+                    [ Html.label [ Html.Attributes.for <| "force-x" ++ String.fromInt index ] [ Html.text "x" ]
+                    , Html.input
+                        [ Html.Attributes.type_ "number"
+                        , Html.Attributes.value <| String.fromFloat force.x
+                        , Html.Attributes.step "0.1"
+                        , Html.Events.onInput (\i -> SetForce index (Vector2.mapX (always (Maybe.withDefault 0 (String.toFloat i))) force))
+                        , Html.Attributes.id <| "force-x" ++ String.fromInt index
+                        ]
+                        []
                     ]
-                    []
-                , Html.input
-                    [ Html.Attributes.type_ "number"
-                    , Html.Attributes.value <| String.fromFloat force.y
-                    , Html.Attributes.step "0.1"
-                    , Html.Events.onInput (\i -> SetForce index (Vector2.mapY (always (Maybe.withDefault 0 (String.toFloat i))) force))
+                , Html.div []
+                    [ Html.label [ Html.Attributes.for <| "force-y" ++ String.fromInt index ] [ Html.text "y" ]
+                    , Html.input
+                        [ Html.Attributes.type_ "number"
+                        , Html.Attributes.value <| String.fromFloat force.y
+                        , Html.Attributes.step "0.1"
+                        , Html.Events.onInput (\i -> SetForce index (Vector2.mapY (always (Maybe.withDefault 0 (String.toFloat i))) force))
+                        , Html.Attributes.id <| "force-y" ++ String.fromInt index
+                        ]
+                        []
                     ]
-                    []
                 ]
     in
     SidebarView.viewDetails "Forces"

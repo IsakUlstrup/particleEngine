@@ -24,7 +24,7 @@ $spacing-large: 2rem
 .sidebar
     flex: 15rem
     min-width: 20rem
-    padding: $spacing-medium
+    padding: $spacing-small
     border-right: 1px solid #363636
     background-color: $secondary-color
     color: $primary-color
@@ -32,12 +32,17 @@ $spacing-large: 2rem
     flex-direction: column
     gap: $spacing-medium
 
+    .content
+        padding: $spacing-medium
+        background-color: lighten($secondary-color, 30)
+        display: flex
+        flex-direction: column
+
     details
         display: flex
         flex-direction: column
         gap: $spacing-medium
-        border: 1px solid $primary-color
-        border-radius: $spacing-small
+        border-radius: 0.2rem
         overflow: hidden
 
     summary
@@ -62,15 +67,6 @@ $spacing-large: 2rem
         display: flex
         flex-wrap: wrap
         gap: $spacing-small
-        padding: $spacing-small
-        input
-            flex: auto
-        &:hover
-            background-color: lighten($secondary-color, 20)
-
-    label
-        cursor: pointer
-        padding: $spacing-small
 
 #game-view
     display: block
