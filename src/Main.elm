@@ -14,6 +14,7 @@ import Html.Attributes
 import Html.Events
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
+import SidebarView
 import Svg exposing (Svg)
 import Svg.Attributes
 import Svg.Events
@@ -407,9 +408,8 @@ viewSidebarForces forces =
                     []
                 ]
     in
-    Html.details []
-        [ Html.summary [] [ Html.text "Forces" ]
-        , Html.ul [] (List.indexedMap viewForce forces)
+    SidebarView.viewDetails "Forces"
+        [ Html.ul [] (List.indexedMap viewForce forces)
         , Html.input
             [ Html.Attributes.type_ "button"
             , Html.Attributes.value "New force"
@@ -447,9 +447,8 @@ viewSidebarStats model =
         constraintCount =
             Dict.toList model.constraints |> List.length
     in
-    Html.details []
-        [ Html.summary [] [ Html.text "Stats" ]
-        , Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.dtHistory ]
+    SidebarView.viewDetails "Stats"
+        [ Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.dtHistory ]
         , Html.p [] [ Html.text <| "Particle count: " ++ String.fromInt particleCount ]
         , Html.p [] [ Html.text <| "Constraint count: " ++ String.fromInt constraintCount ]
         ]
@@ -457,9 +456,8 @@ viewSidebarStats model =
 
 viewSidebarTimeControls : Float -> Html Msg
 viewSidebarTimeControls dtMulti =
-    Html.details []
-        [ Html.summary [] [ Html.text "Time" ]
-        , Html.p [] [ Html.text <| String.fromFloat dtMulti ]
+    SidebarView.viewDetails "Stats"
+        [ Html.p [] [ Html.text <| String.fromFloat dtMulti ]
         , Html.input
             [ Html.Attributes.type_ "range"
             , Html.Attributes.max "1"
