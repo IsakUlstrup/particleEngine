@@ -1,4 +1,4 @@
-// Palette
+// PALETTE
 $primary-color: hsl(40, 100%, 95%)
 $secondary-color: hsl(0, 0%, 15%)
 
@@ -6,13 +6,21 @@ $spacing-small: 0.5rem
 $spacing-medium: 1rem
 $spacing-large: 2rem
 
-// Reset
+$rainbow-one: hsl(337, 53%, 57%)
+$rainbow-two: hsl(3, 87%, 69%)
+$rainbow-three: hsl(34, 95%, 67%)
+$rainbow-four: hsl(165, 28%, 61%)
+$rainbow-five: hsl(222, 41%, 60%)
+
+$rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%, 61%), hsl(222, 41%, 60%)
+
+// RESET
 *
     padding: 0
     margin: 0
     box-sizing: border-box
 
-// Main
+// MAIN
 
 #app
     background: #4c3842
@@ -21,53 +29,63 @@ $spacing-large: 2rem
     height: 100vh
     display: flex
 
+// SIDEBAR
 .sidebar
     flex: 15rem
     min-width: 20rem
     padding: $spacing-small
-    border-right: 1px solid #363636
+    gap: $spacing-small
     background-color: $secondary-color
     color: $primary-color
     display: flex
     flex-direction: column
-    gap: $spacing-medium
-
-    .content
-        padding: $spacing-medium
-        background-color: lighten($secondary-color, 30)
-        display: flex
-        flex-direction: column
+    overflow-y: scroll
 
     details
         display: flex
         flex-direction: column
         gap: $spacing-medium
         border-radius: 0.2rem
-        overflow: hidden
+        // overflow: hidden
 
     summary
         cursor: pointer
-        background-color: lighten($secondary-color, 10)
         padding: $spacing-small
         user-select: none
+        border-radius: 0.2rem
 
-        &:hover
-            background-color: lighten($secondary-color, 20)
-
-    input
-        padding: $spacing-small
-
-    ul
-        list-style: none
+    .content
+        padding: $spacing-medium
+        display: flex
         flex-direction: column
-        display: flex
-        gap: $spacing-small
+        color: $secondary-color
 
-    li
-        display: flex
-        flex-wrap: wrap
-        gap: $spacing-small
+    details:nth-child(5n+1)
+        background-color: lighten($rainbow-one, 20)
+        summary
+            background-color: $rainbow-one
 
+    details:nth-child(5n+2)
+        background-color: lighten($rainbow-two, 20)
+        summary
+            background-color: $rainbow-two
+
+    details:nth-child(5n+3)
+        background-color: lighten($rainbow-three, 20)
+        summary
+            background-color: $rainbow-three
+
+    details:nth-child(5n+4)
+        background-color: lighten($rainbow-four, 20)
+        summary
+            background-color: $rainbow-four
+
+    details:nth-child(5n+5)
+        background-color: lighten($rainbow-five, 20)
+        summary
+            background-color: $rainbow-five
+
+// GAME
 #game-view
     display: block
     width: 100%
@@ -76,7 +94,7 @@ $spacing-large: 2rem
 .bounds
     fill: transparent
     stroke: $primary-color
-    stroke-width: 1
+    stroke-width: 0
 
 .constraint
     cursor: crosshair
