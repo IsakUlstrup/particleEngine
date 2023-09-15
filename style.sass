@@ -41,18 +41,19 @@ $rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%,
     flex-direction: column
     overflow-y: scroll
 
+    ul
+        list-style: none
+
     details
         display: flex
         flex-direction: column
         gap: $spacing-medium
         border-radius: 0.2rem
-        // overflow: hidden
 
     summary
         cursor: pointer
         padding: $spacing-small
         user-select: none
-        border-radius: 0.2rem
 
     .content
         padding: $spacing-small
@@ -60,31 +61,37 @@ $rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%,
         flex-direction: column
         gap: $spacing-small
         color: $secondary-color
+        border-radius: 0.15rem
 
     details:nth-child(5n+1)
-        background-color: lighten($rainbow-one, 20)
-        summary
-            background-color: $rainbow-one
+        border: 0.2rem solid $rainbow-one
+        background-color: $rainbow-one
+        .content
+            background-color: lighten($rainbow-one, 20)
 
     details:nth-child(5n+2)
-        background-color: lighten($rainbow-two, 20)
-        summary
-            background-color: $rainbow-two
+        border: 0.2rem solid $rainbow-two
+        background-color: $rainbow-two
+        .content
+            background-color: lighten($rainbow-two, 20)
 
     details:nth-child(5n+3)
-        background-color: lighten($rainbow-three, 20)
-        summary
-            background-color: $rainbow-three
+        border: 0.2rem solid $rainbow-three
+        background-color: $rainbow-three
+        .content
+            background-color: lighten($rainbow-three, 20)
 
     details:nth-child(5n+4)
-        background-color: lighten($rainbow-four, 20)
-        summary
-            background-color: $rainbow-four
+        border: 0.2rem solid $rainbow-four
+        background-color: $rainbow-four
+        .content
+            background-color: lighten($rainbow-four, 20)
 
     details:nth-child(5n+5)
-        background-color: lighten($rainbow-five, 20)
-        summary
-            background-color: $rainbow-five
+        border: 0.2rem solid $rainbow-five
+        background-color: $rainbow-five
+        .content
+            background-color: lighten($rainbow-five, 20)
 
 .labeled-input
     display: flex
