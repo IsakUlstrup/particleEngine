@@ -138,10 +138,10 @@ init _ =
         []
         Nothing
         |> addParticleList
-            [ ( -50, -50 )
-            , ( 50, -50 )
-            , ( 50, 50 )
-            , ( -50, 50 )
+            [ ( 0, -50 )
+            , ( 100, -50 )
+            , ( 100, 50 )
+            , ( 0, 50 )
             ]
         |> addConstraint 0 1
         |> addConstraint 1 2
@@ -149,7 +149,8 @@ init _ =
         |> addConstraint 3 0
         |> addConstraint 0 2
         |> addConstraint 1 3
-        |> addParticles (nGon (Vector2.new -300 0) 20 100)
+        |> addParticles (nGon Vector2.zero 20 400)
+        |> addParticles (nGon (Vector2.new -100 0) 6 40)
     , gameResize
     )
 
