@@ -380,7 +380,7 @@ viewConstraint particles ( ( from, to ), _ ) =
             Nothing
 
 
-viewSidebarForces : List ( Bool, Vector2 ) -> Html Msg
+viewSidebarForces : List ( Bool, Vector2 ) -> ( String, List (Html Msg) )
 viewSidebarForces forces =
     let
         viewForce : Int -> ( Bool, Vector2 ) -> Html Msg
@@ -399,18 +399,19 @@ viewSidebarForces forces =
                 , SidebarView.viewVector2Input force (SetForce index)
                 ]
     in
-    SidebarView.viewDetails "Forces"
-        [ Html.ul [] (List.indexedMap viewForce forces)
-        , Html.input
+    ( "Forces"
+    , [ Html.ul [] (List.indexedMap viewForce forces)
+      , Html.input
             [ Html.Attributes.type_ "button"
             , Html.Attributes.value "New force"
             , Html.Events.onClick AddForce
             ]
             []
-        ]
+      ]
+    )
 
 
-viewSidebarStats : Model -> Html msg
+viewSidebarStats : Model -> ( String, List (Html Msg) )
 viewSidebarStats model =
     let
         fpsString : List Float -> String
@@ -438,18 +439,19 @@ viewSidebarStats model =
         constraintCount =
             Dict.toList model.constraints |> List.length
     in
-    SidebarView.viewDetails "Stats"
-        [ Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.dtHistory ]
-        , Html.p [] [ Html.text <| "Particle count: " ++ String.fromInt particleCount ]
-        , Html.p [] [ Html.text <| "Constraint count: " ++ String.fromInt constraintCount ]
-        ]
+    ( "Stats"
+    , [ Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.dtHistory ]
+      , Html.p [] [ Html.text <| "Particle count: " ++ String.fromInt particleCount ]
+      , Html.p [] [ Html.text <| "Constraint count: " ++ String.fromInt constraintCount ]
+      ]
+    )
 
 
-viewSidebarTimeControls : Float -> Html Msg
+viewSidebarTimeControls : Float -> ( String, List (Html Msg) )
 viewSidebarTimeControls dtMulti =
-    SidebarView.viewDetails "Time"
-        [ Html.p [] [ Html.text <| String.fromFloat dtMulti ]
-        , Html.input
+    ( "Time"
+    , [ Html.p [] [ Html.text <| String.fromFloat dtMulti ]
+      , Html.input
             [ Html.Attributes.type_ "range"
             , Html.Attributes.max "1"
             , Html.Attributes.step "0.1"
@@ -457,19 +459,20 @@ viewSidebarTimeControls dtMulti =
             , Html.Events.onInput (String.toFloat >> Maybe.withDefault 1 >> SetDtMultiplier)
             ]
             []
-        , Html.input
+      , Html.input
             [ Html.Attributes.type_ "button"
             , Html.Attributes.value "Pause"
             , Html.Events.onClick <| SetDtMultiplier 0
             ]
             []
-        , Html.input
+      , Html.input
             [ Html.Attributes.type_ "button"
             , Html.Attributes.value "Resume"
             , Html.Events.onClick <| SetDtMultiplier 1
             ]
             []
-        ]
+      ]
+    )
 
 
 viewBox : RenderConfig -> Svg.Attribute msg
@@ -487,7 +490,7 @@ viewBox config =
 view : Model -> Html Msg
 view model =
     main_ [ Html.Attributes.id "app" ]
-        [ Html.section [ Html.Attributes.class "sidebar" ]
+        [ SidebarView.viewSidebar
             [ viewSidebarForces model.forces
             , viewSidebarStats model
             , viewSidebarTimeControls model.dtMultiplier
