@@ -396,28 +396,7 @@ viewSidebarForces forces =
                         []
                     , Html.label [ Html.Attributes.for <| "force-enabled" ++ String.fromInt index ] [ Html.text "Enabled" ]
                     ]
-                , Html.div []
-                    [ Html.label [ Html.Attributes.for <| "force-x" ++ String.fromInt index ] [ Html.text "x" ]
-                    , Html.input
-                        [ Html.Attributes.type_ "number"
-                        , Html.Attributes.value <| String.fromFloat force.x
-                        , Html.Attributes.step "0.1"
-                        , Html.Events.onInput (\i -> SetForce index (Vector2.mapX (always (Maybe.withDefault 0 (String.toFloat i))) force))
-                        , Html.Attributes.id <| "force-x" ++ String.fromInt index
-                        ]
-                        []
-                    ]
-                , Html.div []
-                    [ Html.label [ Html.Attributes.for <| "force-y" ++ String.fromInt index ] [ Html.text "y" ]
-                    , Html.input
-                        [ Html.Attributes.type_ "number"
-                        , Html.Attributes.value <| String.fromFloat force.y
-                        , Html.Attributes.step "0.1"
-                        , Html.Events.onInput (\i -> SetForce index (Vector2.mapY (always (Maybe.withDefault 0 (String.toFloat i))) force))
-                        , Html.Attributes.id <| "force-y" ++ String.fromInt index
-                        ]
-                        []
-                    ]
+                , SidebarView.viewVector2Input force (SetForce index)
                 ]
     in
     SidebarView.viewDetails "Forces"
@@ -468,7 +447,7 @@ viewSidebarStats model =
 
 viewSidebarTimeControls : Float -> Html Msg
 viewSidebarTimeControls dtMulti =
-    SidebarView.viewDetails "Stats"
+    SidebarView.viewDetails "Time"
         [ Html.p [] [ Html.text <| String.fromFloat dtMulti ]
         , Html.input
             [ Html.Attributes.type_ "range"
