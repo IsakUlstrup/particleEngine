@@ -412,6 +412,23 @@ viewSidebarForces forces =
     )
 
 
+viewSidebarParticles : Dict Int Particle -> ( String, List (Html Msg) )
+viewSidebarParticles particles =
+    let
+        particle : ( Int, Particle ) -> Html Msg
+        particle ( id, p ) =
+            Html.div [ Html.Events.onClick <| ClickedParticle id ]
+                [ Html.text <|
+                    "id: "
+                        ++ String.fromInt id
+                , SidebarView.viewVector2Input p.position (SetForce 0)
+                ]
+    in
+    ( "Particles"
+    , particles |> Dict.toList |> List.map particle
+    )
+
+
 viewSidebarStats : Model -> ( String, List (Html Msg) )
 viewSidebarStats model =
     let
@@ -493,6 +510,7 @@ view model =
     main_ [ Html.Attributes.id "app" ]
         [ SidebarView.viewSidebar
             [ viewSidebarForces model.forces
+            , viewSidebarParticles model.particles
             , viewSidebarStats model
             , viewSidebarTimeControls model.dtMultiplier
             ]
