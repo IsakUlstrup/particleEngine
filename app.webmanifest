@@ -1,0 +1,10 @@
+{
+    "theme_color": "#262626",
+    "background_color": "#262626",
+    "display": "fullscreen",
+    "scope": "/",
+    "start_url": "/",
+    "name": "Particle Engine",
+    "short_name": "Particle Engine",
+    "description": "A particle engine"
+}
