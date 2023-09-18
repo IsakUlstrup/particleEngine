@@ -32,7 +32,7 @@ $rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%,
 // SIDEBAR
 .sidebar
     flex: 15rem
-    min-width: 20rem
+    // min-width: 20rem
     padding: $spacing-small
     gap: $spacing-small
     background-color: $secondary-color
@@ -127,6 +127,12 @@ $rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%,
         stroke-width: 5
 
 .particle
-
     &:hover
         fill: rgb(255, 158, 236)
+
+// MOBILE
+@media (max-width: 500px)
+    #app
+        flex-direction: column-reverse
+    .sidebar
+        flex: 40rem
