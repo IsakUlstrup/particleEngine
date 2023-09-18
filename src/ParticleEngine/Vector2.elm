@@ -63,7 +63,11 @@ scale amount vector =
 -}
 divide : Float -> Vector2 -> Vector2
 divide value vector =
-    { vector | x = vector.x / value, y = vector.y / value }
+    if value == 0 then
+        zero
+
+    else
+        { vector | x = vector.x / value, y = vector.y / value }
 
 
 magnitude : Vector2 -> Float

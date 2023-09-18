@@ -113,7 +113,7 @@ addParticleList positions model =
     let
         particle : ( Float, Float ) -> Particle
         particle ( x, y ) =
-            Particle.new (Vector2.new x y) 1
+            Particle.new (Vector2.new x y) 0
 
         particles : List Particle
         particles =
