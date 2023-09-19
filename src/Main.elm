@@ -12,6 +12,7 @@ import Dict exposing (Dict)
 import Html exposing (Html, main_)
 import Html.Attributes
 import Html.Events
+import ParticleEngine.Boundary as Boundary exposing (Boundary)
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import SidebarView
@@ -72,6 +73,7 @@ type alias Model =
     , renderConfig : RenderConfig
     , dtHistory : List Float
     , selected : Maybe Int
+    , particleBoundary : Boundary
     }
 
 
@@ -137,6 +139,7 @@ init _ =
         (RenderConfig 1000 1000)
         []
         Nothing
+        (Boundary.new Vector2.zero 1000 1000)
         |> addParticleList
             [ ( 0, -50 )
             , ( 100, -50 )
@@ -222,7 +225,7 @@ fixedUpdate dt model =
                 model.particles
                     |> Dict.map (\_ p -> Particle.applyForce sumForces p)
                     |> Dict.map (\_ p -> Particle.step model.stepTime p)
-                    |> Dict.map (\_ p -> Particle.constrain (model.renderConfig.width / 2) (model.renderConfig.height / 2) p)
+                    |> Dict.map (\_ p -> Particle.constrain model.particleBoundary p)
                     |> constrainParticles model.constraints
         }
             |> fixedUpdate (adjustedDt - model.stepTime)
@@ -282,6 +285,10 @@ update msg model =
                     model.renderConfig
                         |> setWidth element.element.width
                         |> setHeight element.element.height
+                , particleBoundary =
+                    model.particleBoundary
+                        |> Boundary.setWidth element.element.width
+                        |> Boundary.setHeight element.element.height
               }
             , Cmd.none
             )
@@ -495,6 +502,19 @@ viewBox config =
             ++ String.fromFloat config.height
 
 
+viewParticleBounds : Boundary -> Svg msg
+viewParticleBounds boundary =
+    Svg.rect
+        [ Svg.Attributes.width <| String.fromFloat boundary.width
+        , Svg.Attributes.height <| String.fromFloat boundary.height
+        , Svg.Attributes.x <| String.fromFloat (boundary.center.x - (boundary.width / 2))
+        , Svg.Attributes.y <| String.fromFloat (boundary.center.y - (boundary.height / 2))
+        , Svg.Attributes.rx "10"
+        , Svg.Attributes.class "bounds"
+        ]
+        []
+
+
 view : Model -> Html Msg
 view model =
     main_ [ Html.Attributes.id "app" ]
@@ -508,14 +528,7 @@ view model =
             [ viewBox model.renderConfig
             , Svg.Attributes.id "game-view"
             ]
-            [ Svg.rect
-                [ Svg.Attributes.width <| String.fromFloat model.renderConfig.width
-                , Svg.Attributes.height <| String.fromFloat model.renderConfig.height
-                , Svg.Attributes.x <| String.fromFloat -(model.renderConfig.width / 2)
-                , Svg.Attributes.y <| String.fromFloat -(model.renderConfig.height / 2)
-                , Svg.Attributes.class "bounds"
-                ]
-                []
+            [ viewParticleBounds model.particleBoundary
             , Svg.g [] (Dict.toList model.constraints |> List.filterMap (viewConstraint model.particles))
             , Svg.g [] (Dict.toList model.particles |> List.map (viewParticle model.selected))
             ]
