@@ -136,8 +136,11 @@ $rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%,
         stroke-width: 5
 
 .particle
+    fill: $primary-color
     &.hover
         fill: rgb(255, 158, 236)
+    &.selected
+        fill: rgb(200, 158, 255)
 
 // MOBILE
 @media (max-width: 500px)

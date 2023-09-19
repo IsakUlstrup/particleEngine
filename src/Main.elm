@@ -360,30 +360,48 @@ transform x y =
             ++ ")"
 
 
-viewParticle : Maybe Int -> ( Int, Particle ) -> Svg Msg
-viewParticle selected ( id, particle ) =
+svgClassList : List ( String, Bool ) -> Svg.Attribute msg
+svgClassList classes =
+    classes
+        |> List.filter Tuple.second
+        |> List.map Tuple.first
+        |> List.intersperse " "
+        |> String.concat
+        |> Svg.Attributes.class
+
+
+viewParticle : Maybe Int -> Maybe Int -> ( Int, Particle ) -> Svg Msg
+viewParticle selected hovered ( id, particle ) =
     let
-        fillColor : String
-        fillColor =
+        isSelected : Bool
+        isSelected =
             case selected of
-                Just selId ->
-                    if selId == id then
-                        "magenta"
+                Just selectedId ->
+                    selectedId == id
 
-                    else
-                        "beige"
+                Nothing ->
+                    False
 
-                _ ->
-                    "beige"
+        isHovered : Bool
+        isHovered =
+            case hovered of
+                Just selectedId ->
+                    selectedId == id
+
+                Nothing ->
+                    False
     in
     Svg.circle
         [ transform particle.position.x particle.position.y
         , Svg.Attributes.r <| String.fromInt (round Particle.radius)
-        , Svg.Attributes.fill fillColor
         , Svg.Events.onClick <| ClickedParticle id
         , Html.Events.onMouseOver <| HoverParticle id
         , Html.Events.onMouseOut <| HoverExitParticle
-        , Svg.Attributes.class "particle"
+        , svgClassList
+            [ ( "selected", isSelected )
+            , ( "hover", isHovered )
+            , ( "particle", True )
+            ]
         ]
         []
 
@@ -578,7 +596,7 @@ view model =
             ]
             [ viewParticleBounds model.particleBoundary
             , Svg.g [] (Dict.toList model.constraints |> List.filterMap (viewConstraint model.particles))
-            , Svg.g [] (Dict.toList model.particles |> List.map (viewParticle model.selected))
+            , Svg.g [] (Dict.toList model.particles |> List.map (viewParticle model.selected model.hoverParticle))
             ]
         ]
 
