@@ -2,15 +2,10 @@
 $primary-color: hsl(40, 100%, 95%)
 $secondary-color: hsl(0, 0%, 15%)
 
+$spacing-xsmall: 0.25rem
 $spacing-small: 0.5rem
 $spacing-medium: 1rem
 $spacing-large: 2rem
-
-$rainbow-one: hsl(337, 53%, 57%)
-$rainbow-two: hsl(3, 87%, 69%)
-$rainbow-three: hsl(34, 95%, 67%)
-$rainbow-four: hsl(165, 28%, 61%)
-$rainbow-five: hsl(222, 41%, 60%)
 
 $rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%, 61%), hsl(222, 41%, 60%)
 
@@ -31,8 +26,7 @@ $rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%,
 
 // SIDEBAR
 .sidebar
-    flex: 15rem
-    // min-width: 20rem
+    flex: 25rem
     padding: $spacing-small
     gap: $spacing-small
     background-color: $secondary-color
@@ -40,6 +34,17 @@ $rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%,
     display: flex
     flex-direction: column
     overflow-y: scroll
+
+    input[type=button]
+        -webkit-appearance: none
+        -moz-appearance: none
+        appearance: none
+
+    input
+        color: $secondary-color
+        padding: $spacing-small
+        border-radius: $spacing-xsmall
+        border: 1px solid $secondary-color
 
     ul
         list-style: none
@@ -65,49 +70,48 @@ $rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%,
         max-height: 25rem
         overflow-y: scroll
 
-    details:nth-child(5n+1)
-        border: 0.2rem solid $rainbow-one
-        background-color: $rainbow-one
-        .content
-            background-color: lighten($rainbow-one, 20)
-
-    details:nth-child(5n+2)
-        border: 0.2rem solid $rainbow-two
-        background-color: $rainbow-two
-        .content
-            background-color: lighten($rainbow-two, 20)
-
-    details:nth-child(5n+3)
-        border: 0.2rem solid $rainbow-three
-        background-color: $rainbow-three
-        .content
-            background-color: lighten($rainbow-three, 20)
-
-    details:nth-child(5n+4)
-        border: 0.2rem solid $rainbow-four
-        background-color: $rainbow-four
-        .content
-            background-color: lighten($rainbow-four, 20)
-
-    details:nth-child(5n+5)
-        border: 0.2rem solid $rainbow-five
-        background-color: $rainbow-five
-        .content
-            background-color: lighten($rainbow-five, 20)
+    @each $color in $rainbow
+        $length: length($rainbow)
+        $index: index($rainbow, $color)
+        details:nth-child(#{$length}n+#{$index})
+            border: 0.2rem solid $color
+            background-color: $color
+            input
+                background-color: lighten($color, 30)
+                border-color: darken($color, 30)
+                &:focus
+                    border-color: darken($color, 10)
+            .content
+                background-color: lighten($color, 20)
 
 .labeled-input
     display: flex
     gap: $spacing-small
-    &:hover
-        background-color: rgba(0, 0, 0, 0.1)
     label
         flex: 1
-        padding: $spacing-small
+        padding: $spacing-small 0
     input
         display: block
         flex: 1
         min-width: 5rem
-        padding: $spacing-small
+
+.labeled-checkbox
+    display: flex
+    gap: $spacing-small
+    label
+        flex: 1
+        padding: $spacing-small 0
+
+.vector2-input
+    display: flex
+    flex-direction: column
+    gap: $spacing-small
+
+.button-group
+    display: flex
+    gap: $spacing-small
+    input
+        flex: 1
 
 // GAME
 #game-view

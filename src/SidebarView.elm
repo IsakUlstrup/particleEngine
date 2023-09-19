@@ -1,4 +1,4 @@
-module SidebarView exposing (viewLabeledInput, viewSidebar, viewVector2Input)
+module SidebarView exposing (buttonGroup, viewLabeledInput, viewSidebar, viewVector2Input)
 
 import Html exposing (Html, details, div, input, label, strong, summary, text)
 import Html.Attributes exposing (class, for, id, type_, value)
@@ -34,6 +34,11 @@ viewVector2Input vector inputMsg =
         [ viewLabeledInput "number" (String.fromFloat vector.x) "x" (\i -> inputMsg (Vector2.mapX (always (Maybe.withDefault 0 (String.toFloat i))) vector))
         , viewLabeledInput "number" (String.fromFloat vector.y) "y" (\i -> inputMsg (Vector2.mapY (always (Maybe.withDefault 0 (String.toFloat i))) vector))
         ]
+
+
+buttonGroup : List (Html msg) -> Html msg
+buttonGroup buttons =
+    div [ class "button-group" ] buttons
 
 
 viewSidebar : List ( String, List (Html msg) ) -> Html msg

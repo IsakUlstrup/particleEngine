@@ -387,7 +387,7 @@ viewSidebarForces forces =
         viewForce : Int -> ( Bool, Vector2 ) -> Html Msg
         viewForce index ( enabled, force ) =
             Html.li []
-                [ Html.div []
+                [ Html.div [ Html.Attributes.class "labeled-checkbox" ]
                     [ Html.input
                         [ Html.Attributes.type_ "checkbox"
                         , Html.Attributes.checked enabled
@@ -467,28 +467,18 @@ viewSidebarStats model =
 
 viewSidebarTimeControls : Float -> ( String, List (Html Msg) )
 viewSidebarTimeControls dtMulti =
+    let
+        timeButton n =
+            Html.input
+                [ Html.Attributes.type_ "button"
+                , Html.Attributes.value <| String.fromFloat n ++ "x"
+                , Html.Attributes.classList [ ( "selected", n == dtMulti ) ]
+                , Html.Events.onClick <| SetDtMultiplier n
+                ]
+                []
+    in
     ( "Time"
-    , [ Html.p [] [ Html.text <| String.fromFloat dtMulti ]
-      , Html.input
-            [ Html.Attributes.type_ "range"
-            , Html.Attributes.max "1"
-            , Html.Attributes.step "0.1"
-            , Html.Attributes.value <| String.fromFloat dtMulti
-            , Html.Events.onInput (String.toFloat >> Maybe.withDefault 1 >> SetDtMultiplier)
-            ]
-            []
-      , Html.input
-            [ Html.Attributes.type_ "button"
-            , Html.Attributes.value "Pause"
-            , Html.Events.onClick <| SetDtMultiplier 0
-            ]
-            []
-      , Html.input
-            [ Html.Attributes.type_ "button"
-            , Html.Attributes.value "Resume"
-            , Html.Events.onClick <| SetDtMultiplier 1
-            ]
-            []
+    , [ SidebarView.buttonGroup [ timeButton 0, timeButton 0.5, timeButton 1 ]
       ]
     )
 
