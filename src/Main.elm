@@ -187,6 +187,7 @@ type Msg
     = Tick Float
     | ToggleForce Int
     | SetForce Int Vector2
+    | SetParticlePosition Int Vector2
     | AddForce
     | WindowResize
     | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
@@ -272,6 +273,14 @@ update msg model =
                         force
             in
             ( { model | forces = List.indexedMap setForce model.forces }, Cmd.none )
+
+        SetParticlePosition id position ->
+            let
+                updatePosition : Particle -> Particle
+                updatePosition p =
+                    { p | position = position }
+            in
+            ( { model | particles = Dict.update id (Maybe.map updatePosition) model.particles }, Cmd.none )
 
         AddForce ->
             ( { model | forces = ( False, Vector2.zero ) :: model.forces }, Cmd.none )
@@ -428,7 +437,7 @@ viewSidebarParticles particles =
                 [ Html.text <|
                     "id: "
                         ++ String.fromInt id
-                , SidebarView.viewVector2Input p.position (SetForce 0)
+                , SidebarView.viewVector2Input p.position (SetParticlePosition id)
                 ]
     in
     ( "Particles"
