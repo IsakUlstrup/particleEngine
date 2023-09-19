@@ -372,25 +372,6 @@ svgClassList classes =
 
 viewParticle : Maybe Int -> Maybe Int -> ( Int, Particle ) -> Svg Msg
 viewParticle selected hovered ( id, particle ) =
-    let
-        isSelected : Bool
-        isSelected =
-            case selected of
-                Just selectedId ->
-                    selectedId == id
-
-                Nothing ->
-                    False
-
-        isHovered : Bool
-        isHovered =
-            case hovered of
-                Just selectedId ->
-                    selectedId == id
-
-                Nothing ->
-                    False
-    in
     Svg.circle
         [ transform particle.position.x particle.position.y
         , Svg.Attributes.r <| String.fromInt (round Particle.radius)
@@ -398,8 +379,8 @@ viewParticle selected hovered ( id, particle ) =
         , Html.Events.onMouseOver <| HoverParticle id
         , Html.Events.onMouseOut <| HoverExitParticle
         , svgClassList
-            [ ( "selected", isSelected )
-            , ( "hover", isHovered )
+            [ ( "selected", maybeEq id selected )
+            , ( "hover", maybeEq id hovered )
             , ( "particle", True )
             ]
         ]
@@ -458,48 +439,33 @@ viewSidebarForces forces =
     )
 
 
-viewSidebarParticles : Maybe Int -> Maybe Int -> Dict Int Particle -> ( String, List (Html Msg) )
-viewSidebarParticles selected hovered particles =
-    let
-        isSelected : Int -> Bool
-        isSelected id =
-            case selected of
-                Just selectedId ->
-                    selectedId == id
+maybeEq : Int -> Maybe Int -> Bool
+maybeEq n mn =
+    case mn of
+        Just jn ->
+            jn == n
 
-                Nothing ->
-                    False
+        Nothing ->
+            False
 
-        isHovered : Int -> Bool
-        isHovered id =
-            case hovered of
-                Just selectedId ->
-                    selectedId == id
 
-                Nothing ->
-                    False
-
-        particle : ( Int, Particle ) -> Html Msg
-        particle ( id, p ) =
-            Html.div
-                [ Html.Events.onClick <| ClickedParticle id
-                , Html.Events.onMouseOver <| HoverParticle id
-                , Html.Events.onMouseOut <| HoverExitParticle
-                , Html.Attributes.classList
-                    [ ( "selected", isSelected id )
-                    , ( "hover", isHovered id )
-                    , ( "particle", True )
-                    ]
-                ]
-                [ Html.text <|
-                    "id: "
-                        ++ String.fromInt id
-                , SidebarView.viewVector2Input p.position (SetParticlePosition id)
-                ]
-    in
-    ( "Particles"
-    , particles |> Dict.toList |> List.map particle
-    )
+viewSidebarParticle : Maybe Int -> Maybe Int -> ( Int, Particle ) -> Html Msg
+viewSidebarParticle selected hovered ( id, p ) =
+    Html.div
+        [ Html.Events.onClick <| ClickedParticle id
+        , Html.Events.onMouseOver <| HoverParticle id
+        , Html.Events.onMouseOut <| HoverExitParticle
+        , Html.Attributes.classList
+            [ ( "selected", maybeEq id selected )
+            , ( "hover", maybeEq id hovered )
+            , ( "particle", True )
+            ]
+        ]
+        [ Html.text <|
+            "id: "
+                ++ String.fromInt id
+        , SidebarView.viewVector2Input p.position (SetParticlePosition id)
+        ]
 
 
 viewSidebarStats : Model -> ( String, List (Html Msg) )
@@ -586,7 +552,9 @@ view model =
     main_ [ Html.Attributes.id "app" ]
         [ SidebarView.viewSidebar
             [ viewSidebarForces model.forces
-            , viewSidebarParticles model.selected model.hoverParticle model.particles
+            , ( "Particles"
+              , model.particles |> Dict.toList |> List.map (viewSidebarParticle model.selected model.hoverParticle)
+              )
             , viewSidebarStats model
             , viewSidebarTimeControls model.dtMultiplier
             ]
