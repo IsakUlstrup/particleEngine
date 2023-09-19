@@ -100,22 +100,16 @@ constrain width height particle =
 enforceConstraint : Float -> ( Particle, Particle ) -> ( Particle, Particle )
 enforceConstraint length ( p1, p2 ) =
     let
-        dist : Float
-        dist =
-            Vector2.distance p1.position p2.position
-
-        diff : Float
-        diff =
-            length - dist
-
-        percent : Float
-        percent =
-            (diff / dist) / 2
+        deltaDistance : Float
+        deltaDistance =
+            Vector2.distance p1.position p2.position - length
 
         offset : Vector2
         offset =
-            Vector2.scale (percent * 0.1) (Vector2.subtract p1.position p2.position)
+            Vector2.direction p1.position p2.position
+                |> Vector2.scale (deltaDistance * 0.2)
+                |> Vector2.divide 2
     in
-    ( { p1 | position = p1.position |> Vector2.subtract offset }
-    , { p2 | position = p2.position |> Vector2.add offset }
+    ( { p1 | position = p1.position |> Vector2.add offset }
+    , { p2 | position = p2.position |> Vector2.subtract offset }
     )
