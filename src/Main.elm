@@ -165,7 +165,7 @@ constrainPair ( ( from, to ), length ) particles =
         ( Just origin, Just target ) ->
             let
                 ( p1, p2 ) =
-                    Particle.constrainStick length ( origin, target )
+                    Particle.enforceConstraint length ( origin, target )
             in
             particles
                 |> Dict.insert from p1

@@ -2,7 +2,7 @@ module ParticleEngine.Particle exposing
     ( Particle
     , applyForce
     , constrain
-    , constrainStick
+    , enforceConstraint
     , new
     , radius
     , step
@@ -97,8 +97,8 @@ constrain width height particle =
         particle
 
 
-constrainStick : Float -> ( Particle, Particle ) -> ( Particle, Particle )
-constrainStick length ( p1, p2 ) =
+enforceConstraint : Float -> ( Particle, Particle ) -> ( Particle, Particle )
+enforceConstraint length ( p1, p2 ) =
     let
         dist : Float
         dist =
