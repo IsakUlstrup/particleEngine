@@ -73,6 +73,7 @@ type alias Model =
     , renderConfig : RenderConfig
     , dtHistory : List Float
     , selected : Maybe Int
+    , hoverParticle : Maybe Int
     , particleBoundary : Boundary
     }
 
@@ -139,6 +140,7 @@ init _ =
         (RenderConfig 1000 1000)
         []
         Nothing
+        Nothing
         (Boundary.new Vector2.zero 1000 1000)
         |> addParticleList
             [ ( 0, -50 )
@@ -192,8 +194,10 @@ type Msg
     | WindowResize
     | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
     | ClickedParticle Int
+    | HoverParticle Int
     | ClickedConstraint ( Int, Int )
     | SetDtMultiplier Float
+    | HoverExitParticle
 
 
 fixedUpdate : Float -> Model -> Model
@@ -324,6 +328,12 @@ update msg model =
             in
             ( toggle model, Cmd.none )
 
+        HoverParticle id ->
+            ( { model | hoverParticle = Just id }, Cmd.none )
+
+        HoverExitParticle ->
+            ( { model | hoverParticle = Nothing }, Cmd.none )
+
         ClickedConstraint constraintIds ->
             let
                 keepConstraint : ( Int, Int ) -> Float -> Bool
@@ -371,6 +381,8 @@ viewParticle selected ( id, particle ) =
         , Svg.Attributes.r <| String.fromInt (round Particle.radius)
         , Svg.Attributes.fill fillColor
         , Svg.Events.onClick <| ClickedParticle id
+        , Html.Events.onMouseOver <| HoverParticle id
+        , Html.Events.onMouseOut <| HoverExitParticle
         , Svg.Attributes.class "particle"
         ]
         []
@@ -428,12 +440,39 @@ viewSidebarForces forces =
     )
 
 
-viewSidebarParticles : Dict Int Particle -> ( String, List (Html Msg) )
-viewSidebarParticles particles =
+viewSidebarParticles : Maybe Int -> Maybe Int -> Dict Int Particle -> ( String, List (Html Msg) )
+viewSidebarParticles selected hovered particles =
     let
+        isSelected : Int -> Bool
+        isSelected id =
+            case selected of
+                Just selectedId ->
+                    selectedId == id
+
+                Nothing ->
+                    False
+
+        isHovered : Int -> Bool
+        isHovered id =
+            case hovered of
+                Just selectedId ->
+                    selectedId == id
+
+                Nothing ->
+                    False
+
         particle : ( Int, Particle ) -> Html Msg
         particle ( id, p ) =
-            Html.div [ Html.Events.onClick <| ClickedParticle id ]
+            Html.div
+                [ Html.Events.onClick <| ClickedParticle id
+                , Html.Events.onMouseOver <| HoverParticle id
+                , Html.Events.onMouseOut <| HoverExitParticle
+                , Html.Attributes.classList
+                    [ ( "selected", isSelected id )
+                    , ( "hover", isHovered id )
+                    , ( "particle", True )
+                    ]
+                ]
                 [ Html.text <|
                     "id: "
                         ++ String.fromInt id
@@ -529,7 +568,7 @@ view model =
     main_ [ Html.Attributes.id "app" ]
         [ SidebarView.viewSidebar
             [ viewSidebarForces model.forces
-            , viewSidebarParticles model.particles
+            , viewSidebarParticles model.selected model.hoverParticle model.particles
             , viewSidebarStats model
             , viewSidebarTimeControls model.dtMultiplier
             ]

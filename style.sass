@@ -112,6 +112,12 @@ $rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%,
     input
         flex: 1
 
+.particle
+    &.selected
+        background-color: rgba(0, 0, 0, 0.2)
+    &.hover
+        background-color: rgba(0, 0, 0, 0.1)
+
 // GAME
 #game-view
     display: block
@@ -130,7 +136,7 @@ $rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%,
         stroke-width: 5
 
 .particle
-    &:hover
+    &.hover
         fill: rgb(255, 158, 236)
 
 // MOBILE
