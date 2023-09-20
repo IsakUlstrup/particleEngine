@@ -16,7 +16,7 @@ import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 -}
 radius : Float
 radius =
-    10
+    15
 
 
 {-| A particle meant to be used with Verlet integration
@@ -98,6 +98,18 @@ constrain boundary particle =
         particle
 
 
+massRatio : Particle -> Particle -> Float
+massRatio target particle =
+    if particle.mass == 0 then
+        0
+
+    else if target.mass == 0 then
+        1
+
+    else
+        ((particle.mass / target.mass) + 1) * 0.5
+
+
 enforceConstraint : Float -> ( Particle, Particle ) -> ( Particle, Particle )
 enforceConstraint length ( p1, p2 ) =
     let
@@ -111,6 +123,6 @@ enforceConstraint length ( p1, p2 ) =
                 |> Vector2.scale (deltaDistance * 0.2)
                 |> Vector2.divide 2
     in
-    ( { p1 | position = p1.position |> Vector2.add offset }
-    , { p2 | position = p2.position |> Vector2.subtract offset }
+    ( { p1 | position = p1.position |> Vector2.add (Vector2.scale (massRatio p2 p1) offset) }
+    , { p2 | position = p2.position |> Vector2.subtract (Vector2.scale (massRatio p1 p2) offset) }
     )

@@ -142,20 +142,25 @@ init _ =
         Nothing
         Nothing
         (Boundary.new Vector2.zero 1000 1000)
-        |> addParticleList
-            [ ( 0, -50 )
-            , ( 100, -50 )
-            , ( 100, 50 )
-            , ( 0, 50 )
-            ]
+        -- |> addParticleList
+        --     [ ( 0, -50 )
+        --     , ( 100, -50 )
+        --     , ( 100, 50 )
+        --     , ( 0, 50 )
+        --     ]
+        -- |> addConstraint 0 1
+        -- |> addConstraint 1 2
+        -- |> addConstraint 2 3
+        -- |> addConstraint 3 0
+        -- |> addConstraint 0 2
+        -- |> addConstraint 1 3
+        -- |> addParticles (nGon Vector2.zero 20 400)
+        -- |> addParticles (nGon (Vector2.new -100 0) 6 40)
+        |> addParticle (Particle.new (Vector2.new 0 -70) 0)
+        |> addParticle (Particle.new (Vector2.new 50 0) 1)
+        |> addParticle (Particle.new (Vector2.new -50 70) 1)
         |> addConstraint 0 1
         |> addConstraint 1 2
-        |> addConstraint 2 3
-        |> addConstraint 3 0
-        |> addConstraint 0 2
-        |> addConstraint 1 3
-        |> addParticles (nGon Vector2.zero 20 400)
-        |> addParticles (nGon (Vector2.new -100 0) 6 40)
     , gameResize
     )
 
