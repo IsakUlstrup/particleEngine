@@ -381,8 +381,8 @@ viewParticle selected hovered ( id, particle ) =
         [ transform particle.position.x particle.position.y
         , Svg.Attributes.r <| String.fromInt (round Particle.radius)
         , Svg.Events.onClick <| ClickedParticle id
-        , Html.Events.onMouseOver <| HoverParticle id
-        , Html.Events.onMouseOut <| HoverExitParticle
+        , Svg.Events.onMouseOver <| HoverParticle id
+        , Svg.Events.onMouseOut <| HoverExitParticle
         , svgClassList
             [ ( "selected", maybeEq id selected )
             , ( "hover", maybeEq id hovered )
