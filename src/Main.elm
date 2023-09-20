@@ -432,7 +432,7 @@ viewSidebarForces forces =
                 , SidebarView.viewVector2Input force (SetForce index)
                 ]
     in
-    ( "Forces"
+    ( "Forces (" ++ (String.fromInt <| List.length forces) ++ ")"
     , [ Html.ul [] (List.indexedMap viewForce forces)
       , Html.input
             [ Html.Attributes.type_ "button"
@@ -557,7 +557,7 @@ view model =
     main_ [ Html.Attributes.id "app" ]
         [ SidebarView.viewSidebar
             [ viewSidebarForces model.forces
-            , ( "Particles"
+            , ( "Particles (" ++ (Dict.toList model.particles |> List.length |> String.fromInt) ++ ")"
               , model.particles |> Dict.toList |> List.map (viewSidebarParticle model.selected model.hoverParticle)
               )
             , viewSidebarStats model
