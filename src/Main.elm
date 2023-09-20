@@ -8,6 +8,7 @@ module Main exposing
 import Browser
 import Browser.Dom
 import Browser.Events
+import Content.Worlds
 import Dict exposing (Dict)
 import Html exposing (Html, main_)
 import Html.Attributes
@@ -15,31 +16,12 @@ import Html.Events
 import ParticleEngine.Boundary as Boundary exposing (Boundary)
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
+import ParticleEngine.World as World exposing (World)
 import SidebarView
 import Svg exposing (Svg)
 import Svg.Attributes
 import Svg.Events
 import Task
-
-
-nGon : Vector2 -> Int -> Float -> List Particle
-nGon center points radius =
-    let
-        angle : Int -> Float
-        angle index =
-            ((2 * pi) / toFloat points) * toFloat index
-
-        position : Int -> Vector2
-        position index =
-            Vector2.new (cos <| angle index) (sin <| angle index)
-                |> Vector2.scale radius
-                |> Vector2.add center
-
-        newParticle : Int -> Particle
-        newParticle index =
-            Particle.new (position index) 1
-    in
-    List.range 0 (points - 1) |> List.map newParticle
 
 
 
@@ -63,10 +45,7 @@ setHeight height config =
 
 
 type alias Model =
-    { particles : Dict Int Particle
-    , idCounter : Int
-    , constraints : Dict ( Int, Int ) Float
-    , forces : List ( Bool, Vector2 )
+    { world : World
     , stepTime : Float
     , timeAccum : Float
     , dtMultiplier : Float
@@ -78,62 +57,10 @@ type alias Model =
     }
 
 
-addParticle : Particle -> Model -> Model
-addParticle particle model =
-    { model
-        | particles = model.particles |> Dict.insert model.idCounter particle
-        , idCounter = model.idCounter + 1
-    }
-
-
-addParticles : List Particle -> Model -> Model
-addParticles particles model =
-    List.foldl addParticle model particles
-
-
-addConstraint : Int -> Int -> Model -> Model
-addConstraint from to model =
-    case particleDistance from to model.particles of
-        Just dist ->
-            { model | constraints = model.constraints |> Dict.insert ( from, to ) dist }
-
-        Nothing ->
-            model
-
-
-particleDistance : Int -> Int -> Dict Int Particle -> Maybe Float
-particleDistance one two particles =
-    case ( Dict.get one particles, Dict.get two particles ) of
-        ( Just p1, Just p2 ) ->
-            Just <| Vector2.distance p1.position p2.position
-
-        _ ->
-            Nothing
-
-
-addParticleList : List ( Float, Float ) -> Model -> Model
-addParticleList positions model =
-    let
-        particle : ( Float, Float ) -> Particle
-        particle ( x, y ) =
-            Particle.new (Vector2.new x y) 0
-
-        particles : List Particle
-        particles =
-            List.map particle positions
-    in
-    List.foldl addParticle model particles
-
-
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( Model
-        Dict.empty
-        0
-        Dict.empty
-        [ ( False, Vector2.new 0 300 )
-        , ( False, Vector2.new 200 0 )
-        ]
+        Content.Worlds.rope
         0.02
         0
         1
@@ -142,52 +69,12 @@ init _ =
         Nothing
         Nothing
         (Boundary.new Vector2.zero 1000 1000)
-        -- |> addParticleList
-        --     [ ( 0, -50 )
-        --     , ( 100, -50 )
-        --     , ( 100, 50 )
-        --     , ( 0, 50 )
-        --     ]
-        -- |> addConstraint 0 1
-        -- |> addConstraint 1 2
-        -- |> addConstraint 2 3
-        -- |> addConstraint 3 0
-        -- |> addConstraint 0 2
-        -- |> addConstraint 1 3
-        -- |> addParticles (nGon Vector2.zero 20 400)
-        -- |> addParticles (nGon (Vector2.new -100 0) 6 40)
-        |> addParticle (Particle.new (Vector2.new 0 -70) 0)
-        |> addParticle (Particle.new (Vector2.new 50 0) 1)
-        |> addParticle (Particle.new (Vector2.new -50 70) 1)
-        |> addConstraint 0 1
-        |> addConstraint 1 2
     , gameResize
     )
 
 
 
 -- UPDATE
-
-
-constrainPair : ( ( Int, Int ), Float ) -> Dict Int Particle -> Dict Int Particle
-constrainPair ( ( from, to ), length ) particles =
-    case ( Dict.get from particles, Dict.get to particles ) of
-        ( Just origin, Just target ) ->
-            let
-                ( p1, p2 ) =
-                    Particle.enforceConstraint length ( origin, target )
-            in
-            particles
-                |> Dict.insert from p1
-                |> Dict.insert to p2
-
-        _ ->
-            particles
-
-
-constrainParticles : Dict ( Int, Int ) Float -> Dict Int Particle -> Dict Int Particle
-constrainParticles constraints particles =
-    List.foldl constrainPair particles (Dict.toList constraints)
 
 
 type Msg
@@ -226,17 +113,17 @@ fixedUpdate dt model =
                             else
                                 Nothing
                         )
-                        model.forces
+                        model.world.forces
                     )
         in
         { model
             | timeAccum = adjustedDt - model.stepTime
-            , particles =
-                model.particles
-                    |> Dict.map (\_ p -> Particle.applyForce sumForces p)
-                    |> Dict.map (\_ p -> Particle.step model.stepTime p)
-                    |> Dict.map (\_ p -> Particle.constrain model.particleBoundary p)
-                    |> constrainParticles model.constraints
+            , world =
+                model.world
+                    |> World.updateParticles (\_ p -> Particle.applyForce sumForces p)
+                    |> World.updateParticles (\_ p -> Particle.step model.stepTime p)
+                    |> World.updateParticles (\_ p -> Particle.constrain model.particleBoundary p)
+                    |> World.constrainParticles
         }
             |> fixedUpdate (adjustedDt - model.stepTime)
 
@@ -260,39 +147,16 @@ update msg model =
             )
 
         ToggleForce targetIndex ->
-            let
-                toggleForce : Int -> ( Bool, Vector2 ) -> ( Bool, Vector2 )
-                toggleForce index force =
-                    if targetIndex == index then
-                        Tuple.mapFirst not force
-
-                    else
-                        force
-            in
-            ( { model | forces = List.indexedMap toggleForce model.forces }, Cmd.none )
+            ( { model | world = World.toggleForce targetIndex model.world }, Cmd.none )
 
         SetForce targetIndex newForce ->
-            let
-                setForce : Int -> ( Bool, Vector2 ) -> ( Bool, Vector2 )
-                setForce index force =
-                    if index == targetIndex then
-                        Tuple.mapSecond (always newForce) force
-
-                    else
-                        force
-            in
-            ( { model | forces = List.indexedMap setForce model.forces }, Cmd.none )
+            ( { model | world = World.setForce targetIndex newForce model.world }, Cmd.none )
 
         SetParticlePosition id position ->
-            let
-                updatePosition : Particle -> Particle
-                updatePosition p =
-                    { p | position = position }
-            in
-            ( { model | particles = Dict.update id (Maybe.map updatePosition) model.particles }, Cmd.none )
+            ( { model | world = World.setParticlePosition id position model.world }, Cmd.none )
 
         AddForce ->
-            ( { model | forces = ( False, Vector2.zero ) :: model.forces }, Cmd.none )
+            ( { model | world = World.addForce Vector2.zero False model.world }, Cmd.none )
 
         WindowResize ->
             ( model, gameResize )
@@ -324,9 +188,10 @@ update msg model =
                                 { m | selected = Nothing }
 
                             else
-                                m
-                                    |> addConstraint id selected
-                                    |> (\x -> { x | selected = Nothing })
+                                { m
+                                    | world = World.addConstraint id selected m.world
+                                    , selected = Nothing
+                                }
 
                         Nothing ->
                             { m | selected = Just id }
@@ -340,12 +205,7 @@ update msg model =
             ( { model | hoverParticle = Nothing }, Cmd.none )
 
         ClickedConstraint constraintIds ->
-            let
-                keepConstraint : ( Int, Int ) -> Float -> Bool
-                keepConstraint ids _ =
-                    ids /= constraintIds
-            in
-            ( { model | constraints = Dict.filter keepConstraint model.constraints }, Cmd.none )
+            ( { model | world = World.removeConstraint constraintIds model.world }, Cmd.none )
 
         SetDtMultiplier multi ->
             ( { model | dtMultiplier = multi }, Cmd.none )
@@ -495,11 +355,11 @@ viewSidebarStats model =
 
         particleCount : Int
         particleCount =
-            Dict.toList model.particles |> List.length
+            Dict.toList model.world.particles |> List.length
 
         constraintCount : Int
         constraintCount =
-            Dict.toList model.constraints |> List.length
+            Dict.toList model.world.constraints |> List.length
     in
     ( "Stats"
     , [ Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.dtHistory ]
@@ -556,9 +416,9 @@ view : Model -> Html Msg
 view model =
     main_ [ Html.Attributes.id "app" ]
         [ SidebarView.viewSidebar
-            [ viewSidebarForces model.forces
-            , ( "Particles (" ++ (Dict.toList model.particles |> List.length |> String.fromInt) ++ ")"
-              , model.particles |> Dict.toList |> List.map (viewSidebarParticle model.selected model.hoverParticle)
+            [ viewSidebarForces model.world.forces
+            , ( "Particles (" ++ (Dict.toList model.world.particles |> List.length |> String.fromInt) ++ ")"
+              , model.world.particles |> Dict.toList |> List.map (viewSidebarParticle model.selected model.hoverParticle)
               )
             , viewSidebarStats model
             , viewSidebarTimeControls model.dtMultiplier
@@ -568,8 +428,8 @@ view model =
             , Svg.Attributes.id "game-view"
             ]
             [ viewParticleBounds model.particleBoundary
-            , Svg.g [] (Dict.toList model.constraints |> List.filterMap (viewConstraint model.particles))
-            , Svg.g [] (Dict.toList model.particles |> List.map (viewParticle model.selected model.hoverParticle))
+            , Svg.g [] (Dict.toList model.world.constraints |> List.filterMap (viewConstraint model.world.particles))
+            , Svg.g [] (Dict.toList model.world.particles |> List.map (viewParticle model.selected model.hoverParticle))
             ]
         ]
 
