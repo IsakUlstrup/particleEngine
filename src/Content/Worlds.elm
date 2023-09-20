@@ -27,19 +27,19 @@ bridge : World
 bridge =
     World.empty
         |> World.addForce (Vector2.new 0 100) True
-        |> World.addParticle (Particle.new (Vector2.new -300 0) 0)
-        |> World.addParticle (Particle.new (Vector2.new -250 0) 1)
-        |> World.addParticle (Particle.new (Vector2.new -200 0) 1)
+        |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
         |> World.addParticle (Particle.new (Vector2.new -150 0) 1)
-        |> World.addParticle (Particle.new (Vector2.new -100 0) 1)
-        |> World.addParticle (Particle.new (Vector2.new -50 0) 1)
+        |> World.addParticle (Particle.new (Vector2.new -120 0) 1)
+        |> World.addParticle (Particle.new (Vector2.new -90 0) 1)
+        |> World.addParticle (Particle.new (Vector2.new -60 0) 1)
+        |> World.addParticle (Particle.new (Vector2.new -30 0) 1)
         |> World.addParticle (Particle.new (Vector2.new 0 0) 0)
-        |> World.addParticle (Particle.new (Vector2.new 50 0) 1)
-        |> World.addParticle (Particle.new (Vector2.new 100 0) 1)
+        |> World.addParticle (Particle.new (Vector2.new 30 0) 1)
+        |> World.addParticle (Particle.new (Vector2.new 60 0) 1)
+        |> World.addParticle (Particle.new (Vector2.new 90 0) 1)
+        |> World.addParticle (Particle.new (Vector2.new 120 0) 1)
         |> World.addParticle (Particle.new (Vector2.new 150 0) 1)
-        |> World.addParticle (Particle.new (Vector2.new 200 0) 1)
-        |> World.addParticle (Particle.new (Vector2.new 250 0) 1)
-        |> World.addParticle (Particle.new (Vector2.new 300 0) 0)
+        |> World.addParticle (Particle.new (Vector2.new 180 0) 0)
         |> World.addConstraint 0 1
         |> World.addConstraint 1 2
         |> World.addConstraint 2 3
