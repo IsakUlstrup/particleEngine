@@ -1,4 +1,9 @@
-module ParticleEngine.Timing exposing (Timing, fixedUpdate)
+module ParticleEngine.Timing exposing
+    ( Timing
+    , fixedUpdate
+    , new
+    , setDtMulti
+    )
 
 
 type alias Timing =
@@ -9,23 +14,35 @@ type alias Timing =
     }
 
 
+new : Timing
+new =
+    Timing 0.02 0 1 []
+
+
 addDtHistory : Float -> Timing -> Timing
 addDtHistory dt timing =
     { timing | dtHistory = dt :: timing.dtHistory |> List.take 20 }
 
 
-fixedUpdate : Float -> Timing -> Timing
-fixedUpdate dt timing =
+setDtMulti : Float -> Timing -> Timing
+setDtMulti multi timing =
+    { timing | dtMultiplier = multi }
+
+
+fixedUpdate : (a -> a) -> a -> Float -> Timing -> ( a, Timing )
+fixedUpdate f model dt timing =
     let
         adjustedDt : Float
         adjustedDt =
-            dt * timing.dtMultiplier
+            (dt * timing.dtMultiplier) / 1000
     in
-    if adjustedDt >= timing.stepTime then
-        { timing | timeAccum = adjustedDt - timing.stepTime }
+    if adjustedDt + timing.timeAccum >= timing.stepTime then
+        { timing | timeAccum = (adjustedDt + timing.timeAccum) - timing.stepTime }
             |> addDtHistory dt
-            |> fixedUpdate (adjustedDt - timing.stepTime)
+            |> fixedUpdate f (f model) (adjustedDt - timing.stepTime)
 
     else
-        { timing | timeAccum = timing.timeAccum + adjustedDt }
+        ( model
+        , { timing | timeAccum = timing.timeAccum + adjustedDt }
             |> addDtHistory dt
+        )

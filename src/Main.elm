@@ -15,6 +15,7 @@ import Html.Attributes
 import Html.Events
 import ParticleEngine.Boundary as Boundary exposing (Boundary)
 import ParticleEngine.Particle as Particle exposing (Particle)
+import ParticleEngine.Timing exposing (Timing)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import ParticleEngine.World as World exposing (World)
 import SidebarView
@@ -46,11 +47,8 @@ setHeight height config =
 
 type alias Model =
     { world : World
-    , stepTime : Float
-    , timeAccum : Float
-    , dtMultiplier : Float
     , renderConfig : RenderConfig
-    , dtHistory : List Float
+    , timing : Timing
     , selected : Maybe Int
     , hoverParticle : Maybe Int
     , particleBoundary : Boundary
@@ -61,11 +59,8 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( Model
         Content.Worlds.bridge
-        0.02
-        0
-        1
         (RenderConfig 1000 1000)
-        []
+        ParticleEngine.Timing.new
         Nothing
         Nothing
         (Boundary.new Vector2.zero 1000 1000)
@@ -92,57 +87,43 @@ type Msg
     | HoverExitParticle
 
 
-fixedUpdate : Float -> Model -> Model
-fixedUpdate dt model =
+physicsUpdate : Model -> Model
+physicsUpdate model =
     let
-        adjustedDt : Float
-        adjustedDt =
-            dt * model.dtMultiplier
-    in
-    if adjustedDt >= model.stepTime then
-        let
-            sumForces : Vector2
-            sumForces =
-                List.foldl Vector2.add
-                    Vector2.zero
-                    (List.filterMap
-                        (\( e, f ) ->
-                            if e then
-                                Just f
+        sumForces : Vector2
+        sumForces =
+            List.foldl Vector2.add
+                Vector2.zero
+                (List.filterMap
+                    (\( e, f ) ->
+                        if e then
+                            Just f
 
-                            else
-                                Nothing
-                        )
-                        model.world.forces
+                        else
+                            Nothing
                     )
-        in
-        { model
-            | timeAccum = adjustedDt - model.stepTime
-            , world =
-                model.world
-                    |> World.updateParticles (\_ p -> Particle.applyForce sumForces p)
-                    |> World.updateParticles (\_ p -> Particle.step model.stepTime p)
-                    |> World.updateParticles (\_ p -> Particle.constrain model.particleBoundary p)
-                    |> World.constrainParticles
-        }
-            |> fixedUpdate (adjustedDt - model.stepTime)
-
-    else
-        { model | timeAccum = model.timeAccum + adjustedDt }
-
-
-addToDtHistory : Float -> Model -> Model
-addToDtHistory dt model =
-    { model | dtHistory = dt :: model.dtHistory |> List.take 20 }
+                    model.world.forces
+                )
+    in
+    { model
+        | world =
+            model.world
+                |> World.updateParticles (\_ p -> Particle.applyForce sumForces p)
+                |> World.updateParticles (\_ p -> Particle.step model.timing.stepTime p)
+                |> World.updateParticles (\_ p -> Particle.constrain model.particleBoundary p)
+                |> World.constrainParticles
+    }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick dt ->
-            ( model
-                |> fixedUpdate (model.timeAccum + (dt / 1000))
-                |> addToDtHistory dt
+            let
+                ( newModel, newTiming ) =
+                    ParticleEngine.Timing.fixedUpdate physicsUpdate model dt model.timing
+            in
+            ( { newModel | timing = newTiming }
             , Cmd.none
             )
 
@@ -208,7 +189,7 @@ update msg model =
             ( { model | world = World.removeConstraint constraintIds model.world }, Cmd.none )
 
         SetDtMultiplier multi ->
-            ( { model | dtMultiplier = multi }, Cmd.none )
+            ( { model | timing = ParticleEngine.Timing.setDtMulti multi model.timing }, Cmd.none )
 
 
 
@@ -362,7 +343,7 @@ viewSidebarStats model =
             Dict.toList model.world.constraints |> List.length
     in
     ( "Stats"
-    , [ Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.dtHistory ]
+    , [ Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.timing.dtHistory ]
       , Html.p [] [ Html.text <| "Particle count: " ++ String.fromInt particleCount ]
       , Html.p [] [ Html.text <| "Constraint count: " ++ String.fromInt constraintCount ]
       ]
@@ -421,7 +402,7 @@ view model =
               , model.world.particles |> Dict.toList |> List.map (viewSidebarParticle model.selected model.hoverParticle)
               )
             , viewSidebarStats model
-            , viewSidebarTimeControls model.dtMultiplier
+            , viewSidebarTimeControls model.timing.dtMultiplier
             ]
         , Svg.svg
             [ viewBox model.renderConfig
