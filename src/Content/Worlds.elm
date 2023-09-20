@@ -1,6 +1,6 @@
 module Content.Worlds exposing (ring, rope)
 
-import Content.Particles exposing (nGon)
+import Content.Shapes exposing (nGon)
 import ParticleEngine.Particle as Particle
 import ParticleEngine.Vector2 as Vector2
 import ParticleEngine.World as World exposing (World)

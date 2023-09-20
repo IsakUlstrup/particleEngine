@@ -1,4 +1,4 @@
-module Content.Particles exposing (nGon)
+module Content.Shapes exposing (nGon)
 
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
