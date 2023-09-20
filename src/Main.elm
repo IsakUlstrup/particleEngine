@@ -89,26 +89,10 @@ type Msg
 
 physicsUpdate : Model -> Model
 physicsUpdate model =
-    let
-        sumForces : Vector2
-        sumForces =
-            List.foldl Vector2.add
-                Vector2.zero
-                (List.filterMap
-                    (\( e, f ) ->
-                        if e then
-                            Just f
-
-                        else
-                            Nothing
-                    )
-                    model.world.forces
-                )
-    in
     { model
         | world =
             model.world
-                |> World.updateParticles (\_ p -> Particle.applyForce sumForces p)
+                |> World.updateParticles (\_ p -> Particle.applyForce (World.sumForces model.world) p)
                 |> World.updateParticles (\_ p -> Particle.step model.timing.stepTime p)
                 |> World.updateParticles (\_ p -> Particle.constrain model.particleBoundary p)
                 |> World.constrainParticles

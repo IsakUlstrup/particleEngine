@@ -123,6 +123,24 @@ setForce index force world =
     { world | forces = List.indexedMap helper world.forces }
 
 
+{-| Get sum of all enabled forces
+-}
+sumForces : World -> Vector2
+sumForces world =
+    List.foldl Vector2.add
+        Vector2.zero
+        (List.filterMap
+            (\( e, f ) ->
+                if e then
+                    Just f
+
+                else
+                    Nothing
+            )
+            world.forces
+        )
+
+
 setParticlePosition : Int -> Vector2 -> World -> World
 setParticlePosition id position world =
     let
