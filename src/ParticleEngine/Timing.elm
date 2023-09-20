@@ -36,13 +36,16 @@ fixedUpdate f model dt timing =
         adjustedDt =
             (dt * timing.dtMultiplier) / 1000
     in
-    if adjustedDt + timing.timeAccum >= timing.stepTime then
-        { timing | timeAccum = (adjustedDt + timing.timeAccum) - timing.stepTime }
-            |> addDtHistory dt
-            |> fixedUpdate f (f model) (adjustedDt - timing.stepTime)
+    { timing | timeAccum = timing.timeAccum + adjustedDt }
+        |> addDtHistory dt
+        |> updateModel f model
+
+
+updateModel : (a -> a) -> a -> Timing -> ( a, Timing )
+updateModel f model timing =
+    if timing.timeAccum >= timing.stepTime then
+        { timing | timeAccum = timing.timeAccum - timing.stepTime }
+            |> updateModel f (f model)
 
     else
-        ( model
-        , { timing | timeAccum = timing.timeAccum + adjustedDt }
-            |> addDtHistory dt
-        )
+        ( model, timing )
