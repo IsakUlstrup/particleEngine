@@ -146,7 +146,7 @@ setParticlePosition id position world =
     let
         updatePosition : Particle -> Particle
         updatePosition p =
-            { p | position = position }
+            { p | position = position, oldPosition = position }
     in
     { world | particles = Dict.update id (Maybe.map updatePosition) world.particles }
 
