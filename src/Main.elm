@@ -60,7 +60,7 @@ type alias Model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( Model
-        Content.Worlds.rope
+        Content.Worlds.bridge
         0.02
         0
         1
