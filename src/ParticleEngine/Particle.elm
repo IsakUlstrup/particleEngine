@@ -1,6 +1,7 @@
 module ParticleEngine.Particle exposing
     ( Particle
     , applyForce
+    , applySpringForce
     , constrain
     , enforceConstraint
     , new
@@ -9,6 +10,7 @@ module ParticleEngine.Particle exposing
     )
 
 import ParticleEngine.Boundary as Boundary exposing (Boundary)
+import ParticleEngine.Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 
 
@@ -110,12 +112,12 @@ massRatio target particle =
         ((particle.mass / target.mass) + 1) * 0.5
 
 
-enforceConstraint : Float -> ( Particle, Particle ) -> ( Particle, Particle )
-enforceConstraint length ( p1, p2 ) =
+enforceConstraint : Spring -> ( Particle, Particle ) -> ( Particle, Particle )
+enforceConstraint spring ( p1, p2 ) =
     let
         deltaDistance : Float
         deltaDistance =
-            Vector2.distance p1.position p2.position - length
+            Vector2.distance p1.position p2.position - spring.length
 
         offset : Vector2
         offset =
@@ -125,4 +127,24 @@ enforceConstraint length ( p1, p2 ) =
     in
     ( { p1 | position = p1.position |> Vector2.add (Vector2.scale (massRatio p2 p1) offset) }
     , { p2 | position = p2.position |> Vector2.subtract (Vector2.scale (massRatio p1 p2) offset) }
+    )
+
+
+applySpringForce : Spring -> ( Particle, Particle ) -> ( Particle, Particle )
+applySpringForce spring ( p1, p2 ) =
+    let
+        deltaDistance : Float
+        deltaDistance =
+            Vector2.distance p1.position p2.position - spring.length
+
+        direction : Vector2
+        direction =
+            Vector2.direction p1.position p2.position
+
+        forceMultiplier : Float
+        forceMultiplier =
+            spring.rate * deltaDistance
+    in
+    ( p1 |> applyForce (Vector2.scale forceMultiplier direction)
+    , p2 |> applyForce (Vector2.scale -forceMultiplier direction)
     )

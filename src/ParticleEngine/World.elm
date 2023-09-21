@@ -36,7 +36,7 @@ addConstraint : Int -> Int -> World -> World
 addConstraint from to world =
     case particleDistance from to world.particles of
         Just dist ->
-            { world | constraints = world.constraints |> Dict.insert ( from, to ) (Spring dist 1) }
+            { world | constraints = world.constraints |> Dict.insert ( from, to ) (Spring dist 500 0.9) }
 
         Nothing ->
             world
@@ -63,7 +63,7 @@ constrainPair ( ( from, to ), spring ) particles =
         ( Just origin, Just target ) ->
             let
                 ( p1, p2 ) =
-                    Particle.enforceConstraint spring.length ( origin, target )
+                    Particle.enforceConstraint spring ( origin, target )
             in
             particles
                 |> Dict.insert from p1
