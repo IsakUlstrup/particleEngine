@@ -15,6 +15,7 @@ import Html.Attributes
 import Html.Events
 import ParticleEngine.Boundary as Boundary exposing (Boundary)
 import ParticleEngine.Particle as Particle exposing (Particle)
+import ParticleEngine.Spring exposing (Spring)
 import ParticleEngine.Timing exposing (Timing)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import ParticleEngine.World as World exposing (World)
@@ -217,7 +218,7 @@ viewParticle selected hovered ( id, particle ) =
         []
 
 
-viewConstraint : Dict Int Particle -> ( ( Int, Int ), Float ) -> Maybe (Svg Msg)
+viewConstraint : Dict Int Particle -> ( ( Int, Int ), Spring ) -> Maybe (Svg Msg)
 viewConstraint particles ( ( from, to ), _ ) =
     case ( Dict.get from particles, Dict.get to particles ) of
         ( Just origin, Just target ) ->

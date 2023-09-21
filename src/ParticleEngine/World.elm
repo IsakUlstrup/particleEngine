@@ -1,14 +1,15 @@
-module ParticleEngine.World exposing (..)
+module ParticleEngine.World exposing (World, addConstraint, addForce, addParticle, addParticles, constrainParticles, empty, removeConstraint, setForce, setParticlePosition, sumForces, toggleForce, updateParticles)
 
 import Dict exposing (Dict)
 import ParticleEngine.Particle as Particle exposing (Particle)
+import ParticleEngine.Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 
 
 type alias World =
     { particles : Dict Int Particle
     , idCounter : Int
-    , constraints : Dict ( Int, Int ) Float
+    , constraints : Dict ( Int, Int ) Spring
     , forces : List ( Bool, Vector2 )
     }
 
@@ -35,7 +36,7 @@ addConstraint : Int -> Int -> World -> World
 addConstraint from to world =
     case particleDistance from to world.particles of
         Just dist ->
-            { world | constraints = world.constraints |> Dict.insert ( from, to ) dist }
+            { world | constraints = world.constraints |> Dict.insert ( from, to ) (Spring dist 1) }
 
         Nothing ->
             world
@@ -56,27 +57,13 @@ particleDistance one two particles =
             Nothing
 
 
-addParticleList : List ( Float, Float ) -> World -> World
-addParticleList positions world =
-    let
-        particle : ( Float, Float ) -> Particle
-        particle ( x, y ) =
-            Particle.new (Vector2.new x y) 0
-
-        particles : List Particle
-        particles =
-            List.map particle positions
-    in
-    List.foldl addParticle world particles
-
-
-constrainPair : ( ( Int, Int ), Float ) -> Dict Int Particle -> Dict Int Particle
-constrainPair ( ( from, to ), length ) particles =
+constrainPair : ( ( Int, Int ), Spring ) -> Dict Int Particle -> Dict Int Particle
+constrainPair ( ( from, to ), spring ) particles =
     case ( Dict.get from particles, Dict.get to particles ) of
         ( Just origin, Just target ) ->
             let
                 ( p1, p2 ) =
-                    Particle.enforceConstraint length ( origin, target )
+                    Particle.enforceConstraint spring.length ( origin, target )
             in
             particles
                 |> Dict.insert from p1
@@ -154,7 +141,7 @@ setParticlePosition id position world =
 removeConstraint : ( Int, Int ) -> World -> World
 removeConstraint constraint world =
     let
-        keepConstraint : ( Int, Int ) -> Float -> Bool
+        keepConstraint : ( Int, Int ) -> Spring -> Bool
         keepConstraint ids _ =
             ids /= constraint
     in
