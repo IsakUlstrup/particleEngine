@@ -78,6 +78,7 @@ type Msg
     | ToggleForce Int
     | SetForce Int Vector2
     | SetParticlePosition Int Vector2
+    | SetParticleMass Int Float
     | AddForce
     | WindowResize
     | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
@@ -120,6 +121,9 @@ update msg model =
 
         SetParticlePosition id position ->
             ( { model | world = World.setParticlePosition id position model.world }, Cmd.none )
+
+        SetParticleMass id mass ->
+            ( { model | world = World.setParticleMass id mass model.world }, Cmd.none )
 
         AddForce ->
             ( { model | world = World.addForce Vector2.zero False model.world }, Cmd.none )
@@ -296,6 +300,7 @@ viewSidebarParticle selected hovered ( id, p ) =
             "id: "
                 ++ String.fromInt id
         , SidebarView.viewVector2Input p.position (SetParticlePosition id)
+        , SidebarView.viewLabeledInput "number" (String.fromFloat p.mass) "Mass" (\i -> SetParticleMass id (i |> String.toFloat |> Maybe.withDefault 0))
         ]
 
 

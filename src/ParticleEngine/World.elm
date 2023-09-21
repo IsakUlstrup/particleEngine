@@ -1,4 +1,4 @@
-module ParticleEngine.World exposing (World, addConstraint, addForce, addParticle, addParticles, constrainParticles, empty, removeConstraint, setForce, setParticlePosition, sumForces, toggleForce, updateParticles)
+module ParticleEngine.World exposing (World, addConstraint, addForce, addParticle, addParticles, constrainParticles, empty, removeConstraint, setForce, setParticleMass, setParticlePosition, sumForces, toggleForce, updateParticles)
 
 import Dict exposing (Dict)
 import ParticleEngine.Particle as Particle exposing (Particle)
@@ -136,6 +136,16 @@ setParticlePosition id position world =
             { p | position = position, oldPosition = position }
     in
     { world | particles = Dict.update id (Maybe.map updatePosition) world.particles }
+
+
+setParticleMass : Int -> Float -> World -> World
+setParticleMass id mass world =
+    let
+        updateMass : Particle -> Particle
+        updateMass p =
+            { p | mass = mass }
+    in
+    { world | particles = Dict.update id (Maybe.map updateMass) world.particles }
 
 
 removeConstraint : ( Int, Int ) -> World -> World
