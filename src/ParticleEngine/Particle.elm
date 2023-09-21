@@ -1,7 +1,6 @@
 module ParticleEngine.Particle exposing
     ( Particle
     , applyForce
-    , applySpringForce
     , constrain
     , enforceConstraint
     , new
@@ -122,29 +121,9 @@ enforceConstraint spring ( p1, p2 ) =
         offset : Vector2
         offset =
             Vector2.direction p1.position p2.position
-                |> Vector2.scale (deltaDistance * 0.2)
+                |> Vector2.scale (deltaDistance * spring.rate)
                 |> Vector2.divide 2
     in
     ( { p1 | position = p1.position |> Vector2.add (Vector2.scale (massRatio p2 p1) offset) }
     , { p2 | position = p2.position |> Vector2.subtract (Vector2.scale (massRatio p1 p2) offset) }
-    )
-
-
-applySpringForce : Spring -> ( Particle, Particle ) -> ( Particle, Particle )
-applySpringForce spring ( p1, p2 ) =
-    let
-        deltaDistance : Float
-        deltaDistance =
-            Vector2.distance p1.position p2.position - spring.length
-
-        direction : Vector2
-        direction =
-            Vector2.direction p1.position p2.position
-
-        forceMultiplier : Float
-        forceMultiplier =
-            spring.rate * deltaDistance
-    in
-    ( p1 |> applyForce (Vector2.scale forceMultiplier direction)
-    , p2 |> applyForce (Vector2.scale -forceMultiplier direction)
     )
