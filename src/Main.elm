@@ -358,6 +358,20 @@ viewSidebarTimeControls dtMulti =
     )
 
 
+viewSidebarSprings : Dict ( Int, Int ) Spring -> ( String, List (Html Msg) )
+viewSidebarSprings springs =
+    let
+        viewSpring : ( ( Int, Int ), Spring ) -> Html msg
+        viewSpring ( ( from, to ), spring ) =
+            Html.div []
+                [ Html.p [] [ Html.text <| String.fromInt from ++ " -> " ++ String.fromInt to ]
+                , Html.p [] [ Html.text <| "Length: " ++ String.fromFloat spring.length ]
+                , Html.p [] [ Html.text <| "Rate: " ++ String.fromFloat spring.rate ]
+                ]
+    in
+    ( "Springs", springs |> Dict.toList |> List.map viewSpring )
+
+
 viewBox : RenderConfig -> Svg.Attribute msg
 viewBox config =
     Svg.Attributes.viewBox <|
@@ -393,6 +407,7 @@ view model =
               )
             , viewSidebarStats model
             , viewSidebarTimeControls model.timing.dtMultiplier
+            , viewSidebarSprings model.world.constraints
             ]
         , Svg.svg
             [ viewBox model.renderConfig
