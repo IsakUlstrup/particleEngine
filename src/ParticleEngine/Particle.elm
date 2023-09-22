@@ -153,21 +153,23 @@ applySpringForce spring ( p1, p2 ) =
         deltaDistance =
             Vector2.distance p1.position p2.position - spring.length
 
-        direction : Vector2
-        direction =
-            Vector2.direction p1.position p2.position
-
+        -- direction : Vector2
+        -- direction =
+        --     Vector2.direction p1.position p2.position
         -- relative velocity
-        rv one two =
-            Vector2.subtract (velocity one) (velocity two)
-
+        -- rv one two =
+        --     Vector2.subtract (velocity one) (velocity two)
         -- damped force
-        df one two =
-            Vector2.scale deltaDistance direction
-                -- |> Vector2.scale (massRatio one two)
+        -- df one two =
+        --     Vector2.scale deltaDistance direction
+        --         -- |> Vector2.scale (massRatio one two)
+        --         |> Vector2.scale -spring.rate
+        --         |> Vector2.subtract (Vector2.scale spring.damping (rv one two))
+        force =
+            Vector2.direction p1.position p2.position
+                |> Vector2.scale deltaDistance
                 |> Vector2.scale -spring.rate
-                |> Vector2.subtract (Vector2.scale spring.damping (rv one two))
     in
-    ( p1 |> applyForce (Realative <| Vector2.scale -1 (df p2 p1))
-    , p2 |> applyForce (Realative <| df p1 p2)
+    ( p1 |> applyForce (Realative <| Vector2.scale -(massRatio p2 p1) force)
+    , p2 |> applyForce (Realative <| Vector2.scale (massRatio p1 p2) force)
     )
