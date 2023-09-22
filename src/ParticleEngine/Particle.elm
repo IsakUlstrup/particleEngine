@@ -46,7 +46,11 @@ applyForce force particle =
             { particle | acceleration = Vector2.add particle.acceleration (Vector2.divide particle.mass f) }
 
         Absolute f ->
-            { particle | acceleration = Vector2.add particle.acceleration f }
+            if particle.mass /= 0 then
+                { particle | acceleration = Vector2.add particle.acceleration f }
+
+            else
+                particle
 
 
 applyForces : List Force -> Particle -> Particle

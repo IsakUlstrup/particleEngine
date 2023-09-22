@@ -10,7 +10,7 @@ import ParticleEngine.World as World exposing (World)
 rope : World
 rope =
     World.empty
-        |> World.addForce (Realative <| Vector2.new 0 200) True
+        |> World.addForce (Absolute <| Vector2.new 0 200) True
         |> World.addParticle (Particle.new (Vector2.new 0 -70) 0)
         |> World.addParticle (Particle.new (Vector2.new 50 0) 1)
         |> World.addParticle (Particle.new (Vector2.new -50 70) 1)
@@ -27,7 +27,7 @@ ring =
 bridge : World
 bridge =
     World.empty
-        |> World.addForce (Realative <| Vector2.new 0 100) True
+        |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
         |> World.addParticle (Particle.new (Vector2.new -150 0) 1)
         |> World.addParticle (Particle.new (Vector2.new -120 0) 1)
@@ -58,7 +58,7 @@ bridge =
 weightedRope : World
 weightedRope =
     World.empty
-        |> World.addForce (Realative <| Vector2.new 0 100) True
+        |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new 0 -100) 0)
         |> World.addParticle (Particle.new (Vector2.new 0 0) 5)
         |> World.addConstraint 0 1
