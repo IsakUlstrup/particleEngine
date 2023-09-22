@@ -3,6 +3,7 @@ module Content.Worlds exposing (bridge, gravity, ring, rope, weightedRope)
 import Content.Shapes exposing (nGon)
 import ParticleEngine.Force exposing (Force(..))
 import ParticleEngine.Particle as Particle
+import ParticleEngine.Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2
 import ParticleEngine.World as World exposing (World)
 
@@ -61,7 +62,7 @@ weightedRope =
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new 0 -100) 0)
         |> World.addParticle (Particle.new (Vector2.new 0 -80) 1)
-        |> World.addSpring 0 1 200
+        |> World.addSpring 0 1 (Spring 200 0.1)
 
 
 gravity : World

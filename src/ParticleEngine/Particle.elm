@@ -140,6 +140,6 @@ enforceConstraint spring ( p1, p2 ) =
                 |> Vector2.scale (deltaDistance * spring.rate)
                 |> Vector2.divide 2
     in
-    ( { p1 | position = p1.position |> Vector2.add (Vector2.scale (massRatio p2 p1) offset) }
-    , { p2 | position = p2.position |> Vector2.subtract (Vector2.scale (massRatio p1 p2) offset) }
+    ( { p1 | position = p1.position |> Vector2.add (Vector2.scale (massRatio p2 p1 * spring.rate) offset) }
+    , { p2 | position = p2.position |> Vector2.subtract (Vector2.scale (massRatio p1 p2 * spring.rate) offset) }
     )

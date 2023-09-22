@@ -61,11 +61,11 @@ addAutoSpring from to world =
             world
 
 
-addSpring : Int -> Int -> Float -> World -> World
-addSpring from to length world =
+addSpring : Int -> Int -> Spring -> World -> World
+addSpring from to spring world =
     case particleDistance from to world.particles of
         Just _ ->
-            { world | constraints = world.constraints |> Dict.insert ( from, to ) (Spring length 0.5) }
+            { world | constraints = world.constraints |> Dict.insert ( from, to ) spring }
 
         Nothing ->
             world
