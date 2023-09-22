@@ -59,10 +59,10 @@ bridge =
 weightedRope : World
 weightedRope =
     World.empty
-        |> World.addForce (Absolute <| Vector2.new 0 100) True
+        |> World.addForce (Absolute <| Vector2.new 0 500) True
         |> World.addParticle (Particle.new (Vector2.new 0 -100) 0)
         |> World.addParticle (Particle.new (Vector2.new 0 -80) 1)
-        |> World.addSpring 0 1 (Spring 200 0.1)
+        |> World.addSpring 0 1 (Spring 100 20)
 
 
 gravity : World

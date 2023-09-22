@@ -55,7 +55,7 @@ addAutoSpring : Int -> Int -> World -> World
 addAutoSpring from to world =
     case particleDistance from to world.particles of
         Just dist ->
-            { world | constraints = world.constraints |> Dict.insert ( from, to ) (Spring dist 0.5) }
+            { world | constraints = world.constraints |> Dict.insert ( from, to ) (Spring dist 100) }
 
         Nothing ->
             world
@@ -92,7 +92,7 @@ constrainPair ( ( from, to ), spring ) particles =
         ( Just origin, Just target ) ->
             let
                 ( p1, p2 ) =
-                    Particle.enforceConstraint spring ( origin, target )
+                    Particle.applySpringForce spring ( origin, target )
             in
             particles
                 |> Dict.insert from p1
