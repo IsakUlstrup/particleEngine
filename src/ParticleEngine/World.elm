@@ -1,9 +1,10 @@
 module ParticleEngine.World exposing
     ( World
-    , addConstraint
+    , addAutoSpring
     , addForce
     , addParticle
     , addParticles
+    , addSpring
     , applyForces
     , constrainParticles
     , empty
@@ -48,11 +49,23 @@ addParticles particles world =
     List.foldl addParticle world particles
 
 
-addConstraint : Int -> Int -> World -> World
-addConstraint from to world =
+{-| Add spring between two particles, length will be calculated based on current distance between the particles
+-}
+addAutoSpring : Int -> Int -> World -> World
+addAutoSpring from to world =
     case particleDistance from to world.particles of
         Just dist ->
             { world | constraints = world.constraints |> Dict.insert ( from, to ) (Spring dist 0.5) }
+
+        Nothing ->
+            world
+
+
+addSpring : Int -> Int -> Float -> World -> World
+addSpring from to length world =
+    case particleDistance from to world.particles of
+        Just _ ->
+            { world | constraints = world.constraints |> Dict.insert ( from, to ) (Spring length 0.5) }
 
         Nothing ->
             world

@@ -170,7 +170,7 @@ update msg model =
 
                             else
                                 { m
-                                    | world = World.addConstraint id selected m.world
+                                    | world = World.addAutoSpring id selected m.world
                                     , selected = Nothing
                                 }
 
