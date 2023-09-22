@@ -15,8 +15,8 @@ rope =
         |> World.addParticle (Particle.new (Vector2.new 0 -70) 0)
         |> World.addParticle (Particle.new (Vector2.new 50 0) 1)
         |> World.addParticle (Particle.new (Vector2.new -50 70) 1)
-        |> World.addAutoSpring 0 1
-        |> World.addAutoSpring 1 2
+        |> World.addSpring 0 1 (Spring 100 10 20)
+        |> World.addSpring 1 2 (Spring 100 10 20)
 
 
 ring : World
@@ -62,7 +62,7 @@ weightedRope =
         |> World.addForce (Absolute <| Vector2.new 0 500) True
         |> World.addParticle (Particle.new (Vector2.new 0 -100) 0)
         |> World.addParticle (Particle.new (Vector2.new 0 -80) 1)
-        |> World.addSpring 0 1 (Spring 100 10 50)
+        |> World.addSpring 0 1 (Spring 100 10 10)
 
 
 gravity : World

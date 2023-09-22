@@ -4,6 +4,7 @@ module ParticleEngine.Particle exposing
     , applyForces
     , applySpringForce
     , constrain
+    , enforceConstraint
     , new
     , radius
     , step
@@ -156,21 +157,17 @@ applySpringForce spring ( p1, p2 ) =
         direction =
             Vector2.direction p1.position p2.position
 
-        x =
-            Vector2.scale deltaDistance direction
-
-        k =
-            spring.rate
-
         -- relative velocity
         rv one two =
             Vector2.subtract (velocity one) (velocity two)
 
         -- damped force
-        df v =
-            Vector2.scale -k x
-                |> Vector2.subtract (Vector2.scale spring.damping v)
+        df one two =
+            Vector2.scale deltaDistance direction
+                -- |> Vector2.scale (massRatio one two)
+                |> Vector2.scale -spring.rate
+                |> Vector2.subtract (Vector2.scale spring.damping (rv one two))
     in
-    ( p1 |> applyForce (Realative <| Vector2.scale -1 (df (rv p2 p1)))
-    , p2 |> applyForce (Realative <| df (rv p1 p2))
+    ( p1 |> applyForce (Realative <| Vector2.scale -1 (df p2 p1))
+    , p2 |> applyForce (Realative <| df p1 p2)
     )
