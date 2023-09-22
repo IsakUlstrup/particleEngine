@@ -6,9 +6,9 @@ module ParticleEngine.World exposing
     , addParticles
     , addSpring
     , applyForces
-    , constrainParticles
+    , applySpringForces
     , empty
-    , removeConstraint
+    , removeSpring
     , setForce
     , setParticleMass
     , setParticlePosition
@@ -26,7 +26,7 @@ import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 type alias World =
     { particles : Dict Int Particle
     , idCounter : Int
-    , constraints : Dict ( Int, Int ) Spring
+    , springs : Dict ( Int, Int ) Spring
     , forces : List ( Bool, Force )
     }
 
@@ -55,7 +55,7 @@ addAutoSpring : Int -> Int -> World -> World
 addAutoSpring from to world =
     case particleDistance from to world.particles of
         Just dist ->
-            { world | constraints = world.constraints |> Dict.insert ( from, to ) (Spring dist 100 100) }
+            { world | springs = world.springs |> Dict.insert ( from, to ) (Spring dist 100 100) }
 
         Nothing ->
             world
@@ -65,7 +65,7 @@ addSpring : Int -> Int -> Spring -> World -> World
 addSpring from to spring world =
     case particleDistance from to world.particles of
         Just _ ->
-            { world | constraints = world.constraints |> Dict.insert ( from, to ) spring }
+            { world | springs = world.springs |> Dict.insert ( from, to ) spring }
 
         Nothing ->
             world
@@ -102,9 +102,9 @@ constrainPair ( ( from, to ), spring ) particles =
             particles
 
 
-constrainParticles : World -> World
-constrainParticles world =
-    { world | particles = List.foldl constrainPair world.particles (Dict.toList world.constraints) }
+applySpringForces : World -> World
+applySpringForces world =
+    { world | particles = List.foldl constrainPair world.particles (Dict.toList world.springs) }
 
 
 toggleForce : Int -> World -> World
@@ -172,11 +172,11 @@ setParticleMass id mass world =
     { world | particles = Dict.update id (Maybe.map updateMass) world.particles }
 
 
-removeConstraint : ( Int, Int ) -> World -> World
-removeConstraint constraint world =
+removeSpring : ( Int, Int ) -> World -> World
+removeSpring constraint world =
     let
         keepConstraint : ( Int, Int ) -> Spring -> Bool
         keepConstraint ids _ =
             ids /= constraint
     in
-    { world | constraints = Dict.filter keepConstraint world.constraints }
+    { world | springs = Dict.filter keepConstraint world.springs }

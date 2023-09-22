@@ -90,7 +90,7 @@ physicsUpdate model =
             model.world
                 |> World.applyForces
                 |> World.updateParticles (\_ p -> Particle.constrain model.particleBoundary p)
-                |> World.constrainParticles
+                |> World.applySpringForces
                 |> World.updateParticles (\_ p -> Particle.step model.timing.stepTime p)
     }
 
@@ -186,7 +186,7 @@ update msg model =
             ( { model | hoverParticle = Nothing }, Cmd.none )
 
         ClickedConstraint constraintIds ->
-            ( { model | world = World.removeConstraint constraintIds model.world }, Cmd.none )
+            ( { model | world = World.removeSpring constraintIds model.world }, Cmd.none )
 
         SetDtMultiplier multi ->
             ( { model | timing = ParticleEngine.Timing.setDtMulti multi model.timing }, Cmd.none )
@@ -365,7 +365,7 @@ viewSidebarStats model =
 
         constraintCount : Int
         constraintCount =
-            Dict.toList model.world.constraints |> List.length
+            Dict.toList model.world.springs |> List.length
     in
     ( "Stats"
     , [ Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.timing.dtHistory ]
@@ -452,7 +452,7 @@ view model =
               )
             , viewSidebarStats model
             , viewSidebarTimeControls model.timing.dtMultiplier
-            , viewSidebarSprings model.world.constraints
+            , viewSidebarSprings model.world.springs
             , ( "Worlds"
               , model.worlds |> Dict.toList |> List.map viewSidebarWorld
               )
@@ -462,7 +462,7 @@ view model =
             , Svg.Attributes.id "game-view"
             ]
             [ viewParticleBounds model.particleBoundary
-            , Svg.g [] (Dict.toList model.world.constraints |> List.filterMap (viewConstraint model.world.particles))
+            , Svg.g [] (Dict.toList model.world.springs |> List.filterMap (viewConstraint model.world.particles))
             , Svg.g [] (Dict.toList model.world.particles |> List.map (viewParticle model.selected model.hoverParticle))
             ]
         ]
