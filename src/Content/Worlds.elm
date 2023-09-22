@@ -1,6 +1,7 @@
 module Content.Worlds exposing (bridge, gravity, ring, rope, weightedRope)
 
 import Content.Shapes exposing (nGon)
+import ParticleEngine.Force exposing (Force(..))
 import ParticleEngine.Particle as Particle
 import ParticleEngine.Vector2 as Vector2
 import ParticleEngine.World as World exposing (World)
@@ -9,7 +10,7 @@ import ParticleEngine.World as World exposing (World)
 rope : World
 rope =
     World.empty
-        |> World.addForce (Vector2.new 0 200) True
+        |> World.addForce (Realative <| Vector2.new 0 200) True
         |> World.addParticle (Particle.new (Vector2.new 0 -70) 0)
         |> World.addParticle (Particle.new (Vector2.new 50 0) 1)
         |> World.addParticle (Particle.new (Vector2.new -50 70) 1)
@@ -26,7 +27,7 @@ ring =
 bridge : World
 bridge =
     World.empty
-        |> World.addForce (Vector2.new 0 100) True
+        |> World.addForce (Realative <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
         |> World.addParticle (Particle.new (Vector2.new -150 0) 1)
         |> World.addParticle (Particle.new (Vector2.new -120 0) 1)
@@ -57,7 +58,7 @@ bridge =
 weightedRope : World
 weightedRope =
     World.empty
-        |> World.addForce (Vector2.new 0 100) True
+        |> World.addForce (Realative <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new 0 -100) 0)
         |> World.addParticle (Particle.new (Vector2.new 0 0) 5)
         |> World.addConstraint 0 1
@@ -66,6 +67,6 @@ weightedRope =
 gravity : World
 gravity =
     World.empty
-        |> World.addForce (Vector2.new 0 100) True
+        |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -50 -100) 1)
         |> World.addParticle (Particle.new (Vector2.new 50 -100) 5)

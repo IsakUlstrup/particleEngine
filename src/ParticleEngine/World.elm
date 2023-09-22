@@ -1,6 +1,22 @@
-module ParticleEngine.World exposing (World, addConstraint, addForce, addParticle, addParticles, constrainParticles, empty, removeConstraint, setForce, setParticleMass, setParticlePosition, sumForces, toggleForce, updateParticles)
+module ParticleEngine.World exposing
+    ( World
+    , addConstraint
+    , addForce
+    , addParticle
+    , addParticles
+    , applyForces
+    , constrainParticles
+    , empty
+    , removeConstraint
+    , setForce
+    , setParticleMass
+    , setParticlePosition
+    , toggleForce
+    , updateParticles
+    )
 
 import Dict exposing (Dict)
+import ParticleEngine.Force exposing (Force)
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
@@ -10,7 +26,7 @@ type alias World =
     { particles : Dict Int Particle
     , idCounter : Int
     , constraints : Dict ( Int, Int ) Spring
-    , forces : List ( Bool, Vector2 )
+    , forces : List ( Bool, Force )
     }
 
 
@@ -91,15 +107,15 @@ toggleForce index world =
     { world | forces = List.indexedMap helper world.forces }
 
 
-addForce : Vector2 -> Bool -> World -> World
+addForce : Force -> Bool -> World -> World
 addForce force enabled world =
     { world | forces = ( enabled, force ) :: world.forces }
 
 
-setForce : Int -> Vector2 -> World -> World
+setForce : Int -> Force -> World -> World
 setForce index force world =
     let
-        helper : Int -> ( Bool, Vector2 ) -> ( Bool, Vector2 )
+        helper : Int -> ( Bool, Force ) -> ( Bool, Force )
         helper i f =
             if index == i then
                 Tuple.mapSecond (always force) f
@@ -110,22 +126,17 @@ setForce index force world =
     { world | forces = List.indexedMap helper world.forces }
 
 
-{-| Get sum of all enabled forces
--}
-sumForces : World -> Vector2
-sumForces world =
-    List.foldl Vector2.add
-        Vector2.zero
-        (List.filterMap
-            (\( e, f ) ->
-                if e then
-                    Just f
+enabledForces : List ( Bool, Force ) -> List Force
+enabledForces forces =
+    forces
+        |> List.filter Tuple.first
+        |> List.map Tuple.second
 
-                else
-                    Nothing
-            )
-            world.forces
-        )
+
+applyForces : World -> World
+applyForces world =
+    world
+        |> updateParticles (\_ p -> Particle.applyForces (enabledForces world.forces) p)
 
 
 setParticlePosition : Int -> Vector2 -> World -> World

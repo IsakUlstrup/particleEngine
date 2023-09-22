@@ -14,6 +14,7 @@ import Html exposing (Html, main_)
 import Html.Attributes
 import Html.Events
 import ParticleEngine.Boundary as Boundary exposing (Boundary)
+import ParticleEngine.Force as Force exposing (Force(..))
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Spring exposing (Spring)
 import ParticleEngine.Timing exposing (Timing)
@@ -87,7 +88,7 @@ physicsUpdate model =
     { model
         | world =
             model.world
-                |> World.updateParticles (\_ p -> Particle.applyForce (World.sumForces model.world) p)
+                |> World.applyForces
                 |> World.updateParticles (\_ p -> Particle.step model.timing.stepTime p)
                 |> World.updateParticles (\_ p -> Particle.constrain model.particleBoundary p)
                 |> World.constrainParticles
@@ -97,10 +98,10 @@ physicsUpdate model =
 type Msg
     = Tick Float
     | ToggleForce Int
-    | SetForce Int Vector2
+    | SetForce Int Force
     | SetParticlePosition Int Vector2
     | SetParticleMass Int Float
-    | AddForce
+    | AddForce Force
     | WindowResize
     | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
     | ClickedParticle Int
@@ -135,8 +136,8 @@ update msg model =
         SetParticleMass id mass ->
             ( { model | world = World.setParticleMass id mass model.world }, Cmd.none )
 
-        AddForce ->
-            ( { model | world = World.addForce Vector2.zero False model.world }, Cmd.none )
+        AddForce force ->
+            ( { model | world = World.addForce force False model.world }, Cmd.none )
 
         WindowResize ->
             ( model, gameResize )
@@ -256,11 +257,20 @@ viewConstraint particles ( ( from, to ), _ ) =
             Nothing
 
 
-viewSidebarForces : List ( Bool, Vector2 ) -> ( String, List (Html Msg) )
+viewSidebarForces : List ( Bool, Force ) -> ( String, List (Html Msg) )
 viewSidebarForces forces =
     let
-        viewForce : Int -> ( Bool, Vector2 ) -> Html Msg
+        viewForce : Int -> ( Bool, Force ) -> Html Msg
         viewForce index ( enabled, force ) =
+            let
+                forceType =
+                    case force of
+                        Realative _ ->
+                            "Relative"
+
+                        Absolute _ ->
+                            "Absolute"
+            in
             Html.li []
                 [ Html.div [ Html.Attributes.class "labeled-checkbox" ]
                     [ Html.input
@@ -272,15 +282,27 @@ viewSidebarForces forces =
                         []
                     , Html.label [ Html.Attributes.for <| "force-enabled" ++ String.fromInt index ] [ Html.text "Enabled" ]
                     ]
-                , SidebarView.viewVector2Input force (SetForce index)
+                , Html.p [] [ Html.text forceType ]
+                , case force of
+                    Force.Realative f ->
+                        SidebarView.viewVector2Input f (\x -> SetForce index (Force.Realative x))
+
+                    Force.Absolute f ->
+                        SidebarView.viewVector2Input f (\x -> SetForce index (Force.Absolute x))
                 ]
     in
     ( "Forces (" ++ (String.fromInt <| List.length forces) ++ ")"
     , [ Html.ul [] (List.indexedMap viewForce forces)
       , Html.input
             [ Html.Attributes.type_ "button"
-            , Html.Attributes.value "New force"
-            , Html.Events.onClick AddForce
+            , Html.Attributes.value "New relative force"
+            , Html.Events.onClick (AddForce (Force.Realative Vector2.zero))
+            ]
+            []
+      , Html.input
+            [ Html.Attributes.type_ "button"
+            , Html.Attributes.value "New absolute force"
+            , Html.Events.onClick (AddForce (Force.Absolute Vector2.zero))
             ]
             []
       ]

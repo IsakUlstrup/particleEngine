@@ -1,6 +1,7 @@
 module ParticleEngine.Particle exposing
     ( Particle
     , applyForce
+    , applyForces
     , constrain
     , enforceConstraint
     , new
@@ -9,6 +10,7 @@ module ParticleEngine.Particle exposing
     )
 
 import ParticleEngine.Boundary as Boundary exposing (Boundary)
+import ParticleEngine.Force exposing (Force(..))
 import ParticleEngine.Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 
@@ -37,9 +39,19 @@ new position mass =
     Particle position position Vector2.zero mass
 
 
-applyForce : Vector2 -> Particle -> Particle
+applyForce : Force -> Particle -> Particle
 applyForce force particle =
-    { particle | acceleration = Vector2.add particle.acceleration (Vector2.divide particle.mass force) }
+    case force of
+        Realative f ->
+            { particle | acceleration = Vector2.add particle.acceleration (Vector2.divide particle.mass f) }
+
+        Absolute f ->
+            { particle | acceleration = Vector2.add particle.acceleration f }
+
+
+applyForces : List Force -> Particle -> Particle
+applyForces forces particle =
+    List.foldl applyForce particle forces
 
 
 {-| Derive velocity vector based on old position
