@@ -89,9 +89,9 @@ physicsUpdate model =
         | world =
             model.world
                 |> World.applyForces
-                |> World.updateParticles (\_ p -> Particle.step model.timing.stepTime p)
                 |> World.updateParticles (\_ p -> Particle.constrain model.particleBoundary p)
                 |> World.constrainParticles
+                |> World.updateParticles (\_ p -> Particle.step model.timing.stepTime p)
     }
 
 
