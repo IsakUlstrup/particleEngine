@@ -1,4 +1,4 @@
-module Content.Worlds exposing (bridge, ring, rope, weightedRope)
+module Content.Worlds exposing (bridge, gravity, ring, rope, weightedRope)
 
 import Content.Shapes exposing (nGon)
 import ParticleEngine.Particle as Particle
@@ -61,3 +61,11 @@ weightedRope =
         |> World.addParticle (Particle.new (Vector2.new 0 -100) 0)
         |> World.addParticle (Particle.new (Vector2.new 0 0) 5)
         |> World.addConstraint 0 1
+
+
+gravity : World
+gravity =
+    World.empty
+        |> World.addForce (Vector2.new 0 100) True
+        |> World.addParticle (Particle.new (Vector2.new -50 -100) 1)
+        |> World.addParticle (Particle.new (Vector2.new 50 -100) 5)

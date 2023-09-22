@@ -48,6 +48,7 @@ setHeight height config =
 
 type alias Model =
     { world : World
+    , worlds : Dict String World
     , renderConfig : RenderConfig
     , timing : Timing
     , selected : Maybe Int
@@ -60,6 +61,14 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( Model
         Content.Worlds.bridge
+        (Dict.fromList
+            [ ( "Bridge", Content.Worlds.bridge )
+            , ( "Rope", Content.Worlds.rope )
+            , ( "Ring", Content.Worlds.ring )
+            , ( "Weighted rope", Content.Worlds.weightedRope )
+            , ( "Gravity", Content.Worlds.gravity )
+            ]
+        )
         (RenderConfig 1000 1000)
         ParticleEngine.Timing.new
         Nothing
@@ -71,6 +80,18 @@ init _ =
 
 
 -- UPDATE
+
+
+physicsUpdate : Model -> Model
+physicsUpdate model =
+    { model
+        | world =
+            model.world
+                |> World.updateParticles (\_ p -> Particle.applyForce (World.sumForces model.world) p)
+                |> World.updateParticles (\_ p -> Particle.step model.timing.stepTime p)
+                |> World.updateParticles (\_ p -> Particle.constrain model.particleBoundary p)
+                |> World.constrainParticles
+    }
 
 
 type Msg
@@ -87,18 +108,7 @@ type Msg
     | ClickedConstraint ( Int, Int )
     | SetDtMultiplier Float
     | HoverExitParticle
-
-
-physicsUpdate : Model -> Model
-physicsUpdate model =
-    { model
-        | world =
-            model.world
-                |> World.updateParticles (\_ p -> Particle.applyForce (World.sumForces model.world) p)
-                |> World.updateParticles (\_ p -> Particle.step model.timing.stepTime p)
-                |> World.updateParticles (\_ p -> Particle.constrain model.particleBoundary p)
-                |> World.constrainParticles
-    }
+    | SetWorld World
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -179,6 +189,9 @@ update msg model =
 
         SetDtMultiplier multi ->
             ( { model | timing = ParticleEngine.Timing.setDtMulti multi model.timing }, Cmd.none )
+
+        SetWorld world ->
+            ( { model | world = world }, Cmd.none )
 
 
 
@@ -372,6 +385,16 @@ viewSidebarSprings springs =
     ( "Springs", springs |> Dict.toList |> List.map viewSpring )
 
 
+viewSidebarWorld : ( String, World ) -> Html Msg
+viewSidebarWorld ( name, world ) =
+    Html.input
+        [ Html.Attributes.type_ "button"
+        , Html.Attributes.value name
+        , Html.Events.onClick <| SetWorld world
+        ]
+        []
+
+
 viewBox : RenderConfig -> Svg.Attribute msg
 viewBox config =
     Svg.Attributes.viewBox <|
@@ -408,6 +431,9 @@ view model =
             , viewSidebarStats model
             , viewSidebarTimeControls model.timing.dtMultiplier
             , viewSidebarSprings model.world.constraints
+            , ( "Worlds"
+              , model.worlds |> Dict.toList |> List.map viewSidebarWorld
+              )
             ]
         , Svg.svg
             [ viewBox model.renderConfig
