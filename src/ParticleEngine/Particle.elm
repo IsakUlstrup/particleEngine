@@ -156,9 +156,21 @@ applySpringForce spring ( p1, p2 ) =
         direction =
             Vector2.direction p1.position p2.position
 
-        forceMultiplier =
-            -(spring.rate * deltaDistance)
+        x =
+            Vector2.scale deltaDistance direction
+
+        k =
+            spring.rate
+
+        -- relative velocity
+        rv one two =
+            Vector2.subtract (velocity one) (velocity two)
+
+        -- damped force
+        df v =
+            Vector2.scale -k x
+                |> Vector2.subtract (Vector2.scale spring.damping v)
     in
-    ( p1 |> applyForce (Realative <| Vector2.scale -forceMultiplier direction)
-    , p2 |> applyForce (Realative <| Vector2.scale forceMultiplier direction)
+    ( p1 |> applyForce (Realative <| Vector2.scale -1 (df (rv p2 p1)))
+    , p2 |> applyForce (Realative <| df (rv p1 p2))
     )
