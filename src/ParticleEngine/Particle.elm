@@ -125,7 +125,7 @@ massRatio target particle =
         1
 
     else
-        ((particle.mass / target.mass) + 1) * 0.5
+        ((particle.mass / target.mass) + 1) * 0.5 |> min 1
 
 
 enforceConstraint : Spring -> ( Particle, Particle ) -> ( Particle, Particle )
@@ -139,7 +139,7 @@ enforceConstraint spring ( p1, p2 ) =
         offset =
             Vector2.direction p1.position p2.position
                 |> Vector2.scale (deltaDistance * spring.rate)
-                |> Vector2.divide 2
+                |> Vector2.scale 2
     in
     ( { p1 | position = p1.position |> Vector2.add (Vector2.scale (massRatio p2 p1) offset) }
     , { p2 | position = p2.position |> Vector2.subtract (Vector2.scale (massRatio p1 p2) offset) }
@@ -170,6 +170,6 @@ applySpringForce spring ( p1, p2 ) =
                 |> Vector2.scale deltaDistance
                 |> Vector2.scale -spring.rate
     in
-    ( p1 |> applyForce (Realative <| Vector2.scale -(massRatio p2 p1) force)
-    , p2 |> applyForce (Realative <| Vector2.scale (massRatio p1 p2) force)
+    ( p1 |> applyForce (Realative <| Vector2.scale -0.5 force)
+    , p2 |> applyForce (Realative <| Vector2.scale 0.5 force)
     )

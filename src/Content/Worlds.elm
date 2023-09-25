@@ -61,8 +61,8 @@ weightedRope =
     World.empty
         |> World.addForce (Absolute <| Vector2.new 0 500) True
         |> World.addParticle (Particle.new (Vector2.new 0 -100) 0)
-        |> World.addParticle (Particle.new (Vector2.new 0 -80) 1)
-        |> World.addSpring 0 1 (Spring 100 10 10)
+        |> World.addParticle (Particle.new (Vector2.new 20 -80) 1)
+        |> World.addSpring 0 1 (Spring 100 110 10)
 
 
 gravity : World
