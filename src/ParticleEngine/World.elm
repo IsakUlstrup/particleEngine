@@ -51,11 +51,11 @@ addParticles particles world =
 
 {-| Add spring between two particles, length will be calculated based on current distance between the particles
 -}
-addAutoSpring : Int -> Int -> Float -> World -> World
-addAutoSpring from to springRate world =
+addAutoSpring : Int -> Int -> Float -> Float -> World -> World
+addAutoSpring from to springRate damping world =
     case particleDistance from to world.particles of
         Just dist ->
-            { world | springs = world.springs |> Dict.insert ( from, to ) (Spring dist springRate 100) }
+            { world | springs = world.springs |> Dict.insert ( from, to ) (Spring dist springRate damping) }
 
         Nothing ->
             world

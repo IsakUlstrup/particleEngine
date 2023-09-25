@@ -115,6 +115,11 @@ constrain boundary particle =
         particle
 
 
+relativeVelocity : Particle -> Particle -> Vector2
+relativeVelocity target particle =
+    Vector2.subtract (velocity target) (velocity particle)
+
+
 applySpringForce : Particle -> Spring -> Particle -> Particle
 applySpringForce from spring particle =
     let
@@ -127,5 +132,14 @@ applySpringForce from spring particle =
             Vector2.direction from.position particle.position
                 |> Vector2.scale deltaDistance
                 |> Vector2.scale -spring.rate
+
+        damperForce : Vector2
+        damperForce =
+            relativeVelocity from particle
+                |> Vector2.scale -spring.damping
+
+        sumForces : Vector2
+        sumForces =
+            Vector2.add force damperForce
     in
-    applyForce (Realative force) particle
+    applyForce (Realative sumForces) particle

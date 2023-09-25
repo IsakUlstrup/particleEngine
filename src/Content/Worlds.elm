@@ -14,8 +14,10 @@ rope =
         |> World.addParticle (Particle.new (Vector2.new 0 -70) 0)
         |> World.addParticle (Particle.new (Vector2.new 50 0) 1)
         |> World.addParticle (Particle.new (Vector2.new -50 70) 1)
-        |> World.addAutoSpring 0 1 1000
-        |> World.addAutoSpring 1 2 1000
+        |> World.addParticle (Particle.new (Vector2.new 30 100) 1)
+        |> World.addAutoSpring 0 1 1000 1000
+        |> World.addAutoSpring 1 2 1000 10
+        |> World.addAutoSpring 2 3 1000 10
 
 
 ring : World
@@ -41,18 +43,18 @@ bridge =
         |> World.addParticle (Particle.new (Vector2.new 120 0) 1)
         |> World.addParticle (Particle.new (Vector2.new 150 0) 1)
         |> World.addParticle (Particle.new (Vector2.new 180 0) 0)
-        |> World.addAutoSpring 0 1 1000
-        |> World.addAutoSpring 1 2 1000
-        |> World.addAutoSpring 2 3 1000
-        |> World.addAutoSpring 3 4 1000
-        |> World.addAutoSpring 4 5 1000
-        |> World.addAutoSpring 5 6 1000
-        |> World.addAutoSpring 6 7 1000
-        |> World.addAutoSpring 7 8 1000
-        |> World.addAutoSpring 8 9 1000
-        |> World.addAutoSpring 9 10 1000
-        |> World.addAutoSpring 10 11 1000
-        |> World.addAutoSpring 11 12 1000
+        |> World.addAutoSpring 0 1 1000 100
+        |> World.addAutoSpring 1 2 1000 100
+        |> World.addAutoSpring 2 3 1000 100
+        |> World.addAutoSpring 3 4 1000 100
+        |> World.addAutoSpring 4 5 1000 100
+        |> World.addAutoSpring 5 6 1000 100
+        |> World.addAutoSpring 6 7 1000 100
+        |> World.addAutoSpring 7 8 1000 100
+        |> World.addAutoSpring 8 9 1000 100
+        |> World.addAutoSpring 9 10 1000 100
+        |> World.addAutoSpring 10 11 1000 100
+        |> World.addAutoSpring 11 12 1000 100
 
 
 gravity : World
@@ -61,3 +63,5 @@ gravity =
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -50 -100) 1)
         |> World.addParticle (Particle.new (Vector2.new 50 -100) 5)
+        |> World.addParticle (Particle.new (Vector2.new 100 -100) 5)
+        |> World.addAutoSpring 1 2 1000 1000
