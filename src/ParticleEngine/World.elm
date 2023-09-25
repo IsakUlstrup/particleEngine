@@ -92,7 +92,7 @@ constrainPair ( ( from, to ), spring ) particles =
         ( Just origin, Just target ) ->
             let
                 ( p1, p2 ) =
-                    Particle.applySpringForce spring ( origin, target )
+                    ( Particle.applySpringForce target spring origin, Particle.applySpringForce origin spring target )
             in
             particles
                 |> Dict.insert from p1

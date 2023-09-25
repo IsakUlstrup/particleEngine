@@ -146,12 +146,12 @@ enforceConstraint spring ( p1, p2 ) =
     )
 
 
-applySpringForce : Spring -> ( Particle, Particle ) -> ( Particle, Particle )
-applySpringForce spring ( p1, p2 ) =
+applySpringForce : Particle -> Spring -> Particle -> Particle
+applySpringForce from spring particle =
     let
         deltaDistance : Float
         deltaDistance =
-            Vector2.distance p1.position p2.position - spring.length
+            Vector2.distance from.position particle.position - spring.length
 
         -- direction : Vector2
         -- direction =
@@ -166,10 +166,8 @@ applySpringForce spring ( p1, p2 ) =
         --         |> Vector2.scale -spring.rate
         --         |> Vector2.subtract (Vector2.scale spring.damping (rv one two))
         force =
-            Vector2.direction p1.position p2.position
+            Vector2.direction from.position particle.position
                 |> Vector2.scale deltaDistance
                 |> Vector2.scale -spring.rate
     in
-    ( p1 |> applyForce (Realative <| Vector2.scale -0.5 force)
-    , p2 |> applyForce (Realative <| Vector2.scale 0.5 force)
-    )
+    applyForce (Realative <| force) particle
