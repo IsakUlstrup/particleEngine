@@ -246,7 +246,8 @@ viewConstraint particles ( ( from, to ), _ ) =
                     , Svg.Attributes.x2 <| String.fromFloat target.position.x
                     , Svg.Attributes.y2 <| String.fromFloat target.position.y
                     , Svg.Attributes.stroke "beige"
-                    , Svg.Attributes.strokeWidth "3"
+                    , Svg.Attributes.strokeWidth <| String.fromFloat Particle.radius
+                    , Svg.Attributes.strokeLinecap "round"
                     , Svg.Events.onClick <| ClickedConstraint ( from, to )
                     , Svg.Attributes.class "constraint"
                     ]
