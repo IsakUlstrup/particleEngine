@@ -66,7 +66,6 @@ init _ =
             [ ( "Bridge", Content.Worlds.bridge )
             , ( "Rope", Content.Worlds.rope )
             , ( "Ring", Content.Worlds.ring )
-            , ( "Weighted rope", Content.Worlds.weightedRope )
             , ( "Gravity", Content.Worlds.gravity )
             ]
         )

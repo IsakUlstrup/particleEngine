@@ -1,4 +1,4 @@
-module Content.Worlds exposing (bridge, gravity, ring, rope, weightedRope)
+module Content.Worlds exposing (bridge, gravity, ring, rope)
 
 import Content.Shapes exposing (nGon)
 import ParticleEngine.Force exposing (Force(..))
@@ -54,15 +54,6 @@ bridge =
         |> World.addAutoSpring 9 10
         |> World.addAutoSpring 10 11
         |> World.addAutoSpring 11 12
-
-
-weightedRope : World
-weightedRope =
-    World.empty
-        |> World.addForce (Absolute <| Vector2.new 0 500) True
-        |> World.addParticle (Particle.new (Vector2.new 0 -100) 0)
-        |> World.addParticle (Particle.new (Vector2.new 20 -80) 1)
-        |> World.addSpring 0 1 (Spring 100 110 10)
 
 
 gravity : World
