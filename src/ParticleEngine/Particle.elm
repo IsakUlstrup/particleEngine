@@ -4,7 +4,6 @@ module ParticleEngine.Particle exposing
     , applyForces
     , applySpringForce
     , constrain
-    , enforceConstraint
     , new
     , radius
     , step
@@ -116,36 +115,6 @@ constrain boundary particle =
         particle
 
 
-massRatio : Particle -> Particle -> Float
-massRatio target particle =
-    if particle.mass == 0 then
-        0
-
-    else if target.mass == 0 then
-        1
-
-    else
-        ((particle.mass / target.mass) + 1) * 0.5 |> min 1
-
-
-enforceConstraint : Spring -> ( Particle, Particle ) -> ( Particle, Particle )
-enforceConstraint spring ( p1, p2 ) =
-    let
-        deltaDistance : Float
-        deltaDistance =
-            Vector2.distance p1.position p2.position - spring.length
-
-        offset : Vector2
-        offset =
-            Vector2.direction p1.position p2.position
-                |> Vector2.scale (deltaDistance * spring.rate)
-                |> Vector2.scale 2
-    in
-    ( { p1 | position = p1.position |> Vector2.add (Vector2.scale (massRatio p2 p1) offset) }
-    , { p2 | position = p2.position |> Vector2.subtract (Vector2.scale (massRatio p1 p2) offset) }
-    )
-
-
 applySpringForce : Particle -> Spring -> Particle -> Particle
 applySpringForce from spring particle =
     let
@@ -153,21 +122,10 @@ applySpringForce from spring particle =
         deltaDistance =
             Vector2.distance from.position particle.position - spring.length
 
-        -- direction : Vector2
-        -- direction =
-        --     Vector2.direction p1.position p2.position
-        -- relative velocity
-        -- rv one two =
-        --     Vector2.subtract (velocity one) (velocity two)
-        -- damped force
-        -- df one two =
-        --     Vector2.scale deltaDistance direction
-        --         -- |> Vector2.scale (massRatio one two)
-        --         |> Vector2.scale -spring.rate
-        --         |> Vector2.subtract (Vector2.scale spring.damping (rv one two))
+        force : Vector2
         force =
             Vector2.direction from.position particle.position
                 |> Vector2.scale deltaDistance
                 |> Vector2.scale -spring.rate
     in
-    applyForce (Realative <| force) particle
+    applyForce (Realative force) particle

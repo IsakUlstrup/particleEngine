@@ -169,7 +169,7 @@ update msg model =
 
                             else
                                 { m
-                                    | world = World.addAutoSpring id selected m.world
+                                    | world = World.addAutoSpring id selected 100 m.world
                                     , selected = Nothing
                                 }
 
