@@ -132,6 +132,8 @@ applySpringForce from spring particle =
             Vector2.direction from.position particle.position
                 |> Vector2.scale deltaDistance
                 |> Vector2.scale -spring.rate
+                -- divide by two, so both particles together move by 1
+                |> Vector2.scale 0.5
 
         damperForce : Vector2
         damperForce =
