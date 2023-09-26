@@ -13,6 +13,7 @@ rope : World RenderSystem
 rope =
     World.empty
         |> World.addRenderSystem (RenderSystem.springs 10) True
+        |> World.addRenderSystem RenderSystem.boundary True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
         |> World.addParticle (Particle.new (Vector2.new -150 0) 1)
@@ -45,6 +46,7 @@ ring : World RenderSystem
 ring =
     World.empty
         |> World.addRenderSystem RenderSystem.particles True
+        |> World.addRenderSystem RenderSystem.boundary True
         |> World.addRenderSystem (RenderSystem.springs <| Particle.radius) True
         |> World.addParticles (nGon Vector2.zero 6 40)
 
@@ -53,6 +55,7 @@ bridge : World RenderSystem
 bridge =
     World.empty
         |> World.addRenderSystem RenderSystem.particles True
+        |> World.addRenderSystem RenderSystem.boundary True
         |> World.addRenderSystem (RenderSystem.springs <| Particle.radius) True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
@@ -86,6 +89,7 @@ gravity : World RenderSystem
 gravity =
     World.empty
         |> World.addRenderSystem RenderSystem.particles True
+        |> World.addRenderSystem RenderSystem.boundary True
         |> World.addRenderSystem (RenderSystem.springs <| Particle.radius) True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -50 -100) 1)
@@ -103,6 +107,7 @@ cloth : World RenderSystem
 cloth =
     World.empty
         |> World.addRenderSystem (RenderSystem.springs 5) True
+        |> World.addRenderSystem RenderSystem.boundary True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addForce (Realative <| Vector2.new 100 0) False
         -- row 1, anchors
