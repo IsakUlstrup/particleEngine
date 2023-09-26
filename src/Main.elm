@@ -438,7 +438,15 @@ view model =
 
 viewSidebarRenderSystem : ( Bool, RenderSystem ) -> Html Msg
 viewSidebarRenderSystem ( enabled, system ) =
-    Html.p [] [ Html.text <| RenderSystem.toString system ]
+    let
+        enabledString =
+            if enabled then
+                "Enabled"
+
+            else
+                "Disabled"
+    in
+    Html.p [] [ Html.text <| RenderSystem.toString system ++ " " ++ enabledString ]
 
 
 
