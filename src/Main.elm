@@ -359,19 +359,9 @@ viewSidebarStats model =
                 |> String.split "."
                 |> List.head
                 |> Maybe.withDefault "-"
-
-        particleCount : Int
-        particleCount =
-            Dict.toList model.world.particles |> List.length
-
-        constraintCount : Int
-        constraintCount =
-            Dict.toList model.world.springs |> List.length
     in
     ( "Stats"
     , [ Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.timing.dtHistory ]
-      , Html.p [] [ Html.text <| "Particle count: " ++ String.fromInt particleCount ]
-      , Html.p [] [ Html.text <| "Constraint count: " ++ String.fromInt constraintCount ]
       ]
     )
 
@@ -397,6 +387,10 @@ viewSidebarTimeControls dtMulti =
 viewSidebarSprings : Dict ( Int, Int ) Spring -> ( String, List (Html Msg) )
 viewSidebarSprings springs =
     let
+        springList : List ( ( Int, Int ), Spring )
+        springList =
+            Dict.toList springs
+
         viewSpring : ( ( Int, Int ), Spring ) -> Html msg
         viewSpring ( ( from, to ), spring ) =
             Html.div []
@@ -405,7 +399,7 @@ viewSidebarSprings springs =
                 , Html.p [] [ Html.text <| "Rate: " ++ String.fromFloat spring.rate ]
                 ]
     in
-    ( "Springs", springs |> Dict.toList |> List.map viewSpring )
+    ( "Springs (" ++ (String.fromInt <| List.length springList) ++ ")", springList |> List.map viewSpring )
 
 
 viewSidebarWorld : ( String, World ) -> Html Msg
@@ -451,9 +445,9 @@ view model =
             , ( "Particles (" ++ (Dict.toList model.world.particles |> List.length |> String.fromInt) ++ ")"
               , model.world.particles |> Dict.toList |> List.map (viewSidebarParticle model.selected model.hoverParticle)
               )
+            , viewSidebarSprings model.world.springs
             , viewSidebarStats model
             , viewSidebarTimeControls model.timing.dtMultiplier
-            , viewSidebarSprings model.world.springs
             , ( "Worlds"
               , model.worlds |> Dict.toList |> List.map viewSidebarWorld
               )
