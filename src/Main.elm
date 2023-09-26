@@ -67,6 +67,7 @@ init _ =
             , ( "Rope", Content.Worlds.rope )
             , ( "Ring", Content.Worlds.ring )
             , ( "Gravity", Content.Worlds.gravity )
+            , ( "Cloth", Content.Worlds.cloth )
             ]
         )
         (RenderConfig 1000 1000)
