@@ -46,8 +46,8 @@ ring : World RenderSystem
 ring =
     World.empty
         |> World.addRenderSystem RenderSystem.particles True
-        |> World.addRenderSystem RenderSystem.boundary True
         |> World.addRenderSystem (RenderSystem.springs <| Particle.radius) True
+        |> World.addRenderSystem RenderSystem.boundary True
         |> World.addParticles (nGon Vector2.zero 6 40)
 
 
@@ -55,8 +55,8 @@ bridge : World RenderSystem
 bridge =
     World.empty
         |> World.addRenderSystem RenderSystem.particles True
-        |> World.addRenderSystem RenderSystem.boundary True
         |> World.addRenderSystem (RenderSystem.springs <| Particle.radius) True
+        |> World.addRenderSystem RenderSystem.boundary True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
         |> World.addParticle (Particle.new (Vector2.new -150 0) 1)
@@ -89,8 +89,8 @@ gravity : World RenderSystem
 gravity =
     World.empty
         |> World.addRenderSystem RenderSystem.particles True
-        |> World.addRenderSystem RenderSystem.boundary True
         |> World.addRenderSystem (RenderSystem.springs <| Particle.radius) True
+        |> World.addRenderSystem RenderSystem.boundary True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -50 -100) 1)
         |> World.addParticle (Particle.new (Vector2.new 50 -100) 5)
