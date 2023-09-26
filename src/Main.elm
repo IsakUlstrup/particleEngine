@@ -1,7 +1,6 @@
 module Main exposing
     ( Model
     , Msg
-    , RenderConfig
     , main
     )
 
@@ -16,6 +15,7 @@ import Html.Events
 import ParticleEngine.Boundary as Boundary exposing (Boundary)
 import ParticleEngine.Force as Force exposing (Force(..))
 import ParticleEngine.Particle as Particle exposing (Particle)
+import ParticleEngine.Render as Render exposing (RenderConfig)
 import ParticleEngine.Spring exposing (Spring)
 import ParticleEngine.Timing exposing (Timing)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
@@ -30,22 +30,6 @@ import Task
 
 
 -- MODEL
-
-
-type alias RenderConfig =
-    { width : Float
-    , height : Float
-    }
-
-
-setWidth : Float -> RenderConfig -> RenderConfig
-setWidth width config =
-    { config | width = width }
-
-
-setHeight : Float -> RenderConfig -> RenderConfig
-setHeight height config =
-    { config | height = height }
 
 
 type alias Model =
@@ -147,8 +131,8 @@ update msg model =
             ( { model
                 | renderConfig =
                     model.renderConfig
-                        |> setWidth element.element.width
-                        |> setHeight element.element.height
+                        |> Render.setWidth element.element.width
+                        |> Render.setHeight element.element.height
                 , particleBoundary =
                     model.particleBoundary
                         |> Boundary.setWidth element.element.width
@@ -413,18 +397,6 @@ viewSidebarWorld ( name, world ) =
         []
 
 
-viewBox : RenderConfig -> Svg.Attribute msg
-viewBox config =
-    Svg.Attributes.viewBox <|
-        String.fromFloat -(config.width / 2)
-            ++ " "
-            ++ String.fromFloat -(config.height / 2)
-            ++ " "
-            ++ String.fromFloat config.width
-            ++ " "
-            ++ String.fromFloat config.height
-
-
 viewParticleBounds : Boundary -> Svg msg
 viewParticleBounds boundary =
     Svg.rect
@@ -451,19 +423,6 @@ runRenderSystem boundary selected hovered world system =
             viewParticleBounds boundary
 
 
-viewWorld : Boundary -> Maybe Int -> Maybe Int -> RenderConfig -> World RenderSystem -> Svg Msg
-viewWorld boundary selected hovered config world =
-    Svg.svg
-        [ viewBox config
-        , Svg.Attributes.id "game-view"
-        ]
-        (world.renderSystems
-            |> List.filter Tuple.first
-            |> List.map Tuple.second
-            |> List.map (runRenderSystem boundary selected hovered world)
-        )
-
-
 view : Model -> Html Msg
 view model =
     main_ [ Html.Attributes.id "app" ]
@@ -482,7 +441,7 @@ view model =
               , model.worlds |> Dict.toList |> List.map viewSidebarWorld
               )
             ]
-        , viewWorld model.particleBoundary model.selected model.hoverParticle model.renderConfig model.world
+        , Render.viewWorld (runRenderSystem model.particleBoundary model.selected model.hoverParticle) model.renderConfig model.world
         ]
 
 

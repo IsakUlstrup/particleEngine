@@ -38,7 +38,7 @@ viewBox config =
             ++ String.fromFloat config.height
 
 
-viewWorld : (renderSystem -> Svg msg) -> RenderConfig -> World renderSystem -> Svg msg
+viewWorld : (World renderSystem -> renderSystem -> Svg msg) -> RenderConfig -> World renderSystem -> Svg msg
 viewWorld runRenderSystem config world =
     Svg.svg
         [ viewBox config
@@ -47,5 +47,5 @@ viewWorld runRenderSystem config world =
         (world.renderSystems
             |> List.filter Tuple.first
             |> List.map Tuple.second
-            |> List.map runRenderSystem
+            |> List.map (runRenderSystem world)
         )
