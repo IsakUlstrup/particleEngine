@@ -30,6 +30,7 @@ $rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%,
     padding: $spacing-small
     gap: $spacing-small
     color: $primary-color
+    background-color: $primary-color
     display: flex
     flex-direction: column
     overflow-y: scroll
@@ -67,7 +68,7 @@ $rainbow: hsl(337, 53%, 57%), hsl(3, 87%, 69%), hsl(34, 95%, 67%), hsl(165, 28%,
         color: $secondary-color
         border-radius: 0.15rem
         max-height: 25rem
-        overflow-y: scroll
+        overflow-y: auto
 
     @each $color in $rainbow
         $length: length($rainbow)
