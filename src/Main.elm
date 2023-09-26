@@ -249,6 +249,7 @@ viewSidebarForces forces =
         viewForce : Int -> ( Bool, Force ) -> Html Msg
         viewForce index ( enabled, force ) =
             let
+                forceType : String
                 forceType =
                     case force of
                         Realative _ ->
@@ -345,6 +346,7 @@ viewSidebarStats model =
 viewSidebarTimeControls : Float -> ( String, List (Html Msg) )
 viewSidebarTimeControls dtMulti =
     let
+        timeButton : Float -> Html Msg
         timeButton n =
             Html.input
                 [ Html.Attributes.type_ "button"
@@ -439,6 +441,7 @@ view model =
 viewSidebarRenderSystem : ( Bool, RenderSystem ) -> Html Msg
 viewSidebarRenderSystem ( enabled, system ) =
     let
+        enabledString : String
         enabledString =
             if enabled then
                 "Enabled"

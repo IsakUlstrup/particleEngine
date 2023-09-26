@@ -1,6 +1,5 @@
 module ParticleEngine.Particle exposing
     ( Particle
-    , applyForce
     , applyForces
     , applySpringForce
     , constrain

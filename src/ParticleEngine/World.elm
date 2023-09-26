@@ -117,6 +117,7 @@ applySpringForces world =
 toggleForce : Int -> World renderSystem -> World renderSystem
 toggleForce index world =
     let
+        helper : Int -> ( Bool, Force ) -> ( Bool, Force )
         helper i force =
             if i == index then
                 Tuple.mapFirst not force
