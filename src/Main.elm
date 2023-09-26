@@ -17,7 +17,7 @@ import ParticleEngine.Force as Force exposing (Force(..))
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Render as Render exposing (RenderConfig)
 import ParticleEngine.Spring exposing (Spring)
-import ParticleEngine.Timing exposing (Timing)
+import ParticleEngine.Timing as Timing exposing (Timing)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import ParticleEngine.World as World exposing (World)
 import RenderSystem exposing (RenderSystem(..))
@@ -56,7 +56,7 @@ init _ =
             ]
         )
         (RenderConfig 1000 1000)
-        ParticleEngine.Timing.new
+        Timing.new
         Nothing
         Nothing
         (Boundary.new Vector2.zero 1000 1000)
@@ -103,7 +103,7 @@ update msg model =
         Tick dt ->
             let
                 ( newModel, newTiming ) =
-                    ParticleEngine.Timing.fixedUpdate physicsUpdate model dt model.timing
+                    Timing.fixedUpdate physicsUpdate model dt model.timing
             in
             ( { newModel | timing = newTiming }
             , Cmd.none
@@ -174,7 +174,7 @@ update msg model =
             ( { model | world = World.removeSpring constraintIds model.world }, Cmd.none )
 
         SetDtMultiplier multi ->
-            ( { model | timing = ParticleEngine.Timing.setDtMulti multi model.timing }, Cmd.none )
+            ( { model | timing = Timing.setDtMulti multi model.timing }, Cmd.none )
 
         SetWorld world ->
             ( { model | world = world }, Cmd.none )
@@ -328,25 +328,16 @@ viewSidebarParticle selected hovered ( id, p ) =
 viewSidebarStats : Model -> ( String, List (Html Msg) )
 viewSidebarStats model =
     let
-        fpsString : List Float -> String
-        fpsString dts =
-            let
-                averageDelta : Float
-                averageDelta =
-                    List.sum dts / toFloat (List.length dts)
-
-                averageFps : Float
-                averageFps =
-                    1000 / averageDelta
-            in
-            averageFps
+        fpsString : Timing -> String
+        fpsString timing =
+            Timing.averageFps timing
                 |> String.fromFloat
                 |> String.split "."
                 |> List.head
                 |> Maybe.withDefault "-"
     in
     ( "Stats"
-    , [ Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.timing.dtHistory ]
+    , [ Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.timing ]
       ]
     )
 

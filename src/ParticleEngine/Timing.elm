@@ -1,5 +1,6 @@
 module ParticleEngine.Timing exposing
     ( Timing
+    , averageFps
     , fixedUpdate
     , new
     , setDtMulti
@@ -49,3 +50,13 @@ updateModel f model timing =
 
     else
         ( model, timing )
+
+
+averageDelta : List Float -> Float
+averageDelta dts =
+    List.sum dts / toFloat (List.length dts)
+
+
+averageFps : Timing -> Float
+averageFps timing =
+    1000 / averageDelta timing.dtHistory
