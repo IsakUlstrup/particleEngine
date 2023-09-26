@@ -3,7 +3,7 @@ module RenderSystem exposing (RenderSystem(..), boundary, particles, springs, to
 
 type RenderSystem
     = RenderParticles
-    | RenderSprings
+    | RenderSprings Float
     | RenderBoundary
 
 
@@ -12,9 +12,9 @@ particles =
     RenderParticles
 
 
-springs : RenderSystem
-springs =
-    RenderSprings
+springs : Float -> RenderSystem
+springs width =
+    RenderSprings width
 
 
 boundary : RenderSystem
@@ -28,8 +28,8 @@ toString renderSystem =
         RenderParticles ->
             "RenderParticles"
 
-        RenderSprings ->
-            "RenderSprings"
+        RenderSprings w ->
+            "RenderSprings " ++ String.fromFloat w
 
         RenderBoundary ->
             "RenderBoundary"

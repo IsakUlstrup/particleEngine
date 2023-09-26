@@ -237,8 +237,8 @@ viewParticle selected hovered ( id, particle ) =
         []
 
 
-viewConstraint : Dict Int Particle -> ( ( Int, Int ), Spring ) -> Maybe (Svg Msg)
-viewConstraint particles ( ( from, to ), _ ) =
+viewConstraint : Float -> Dict Int Particle -> ( ( Int, Int ), Spring ) -> Maybe (Svg Msg)
+viewConstraint strokeWidth particles ( ( from, to ), _ ) =
     case ( Dict.get from particles, Dict.get to particles ) of
         ( Just origin, Just target ) ->
             Just <|
@@ -248,7 +248,7 @@ viewConstraint particles ( ( from, to ), _ ) =
                     , Svg.Attributes.x2 <| String.fromFloat target.position.x
                     , Svg.Attributes.y2 <| String.fromFloat target.position.y
                     , Svg.Attributes.stroke "beige"
-                    , Svg.Attributes.strokeWidth <| String.fromFloat Particle.radius
+                    , Svg.Attributes.strokeWidth <| String.fromFloat strokeWidth
                     , Svg.Attributes.strokeLinecap "round"
                     , Svg.Events.onClick <| ClickedConstraint ( from, to )
                     , Svg.Attributes.class "constraint"
@@ -444,8 +444,8 @@ runRenderSystem boundary selected hovered world system =
         RenderParticles ->
             Svg.g [] (Dict.toList world.particles |> List.map (viewParticle selected hovered))
 
-        RenderSprings ->
-            Svg.g [] (Dict.toList world.springs |> List.filterMap (viewConstraint world.particles))
+        RenderSprings width ->
+            Svg.g [] (Dict.toList world.springs |> List.filterMap (viewConstraint width world.particles))
 
         RenderBoundary ->
             viewParticleBounds boundary
