@@ -395,7 +395,7 @@ viewParticleBounds boundary =
         , Svg.Attributes.height <| String.fromFloat boundary.height
         , Svg.Attributes.x <| String.fromFloat (boundary.center.x - (boundary.width / 2))
         , Svg.Attributes.y <| String.fromFloat (boundary.center.y - (boundary.height / 2))
-        , Svg.Attributes.rx "10"
+        , Svg.Attributes.rx "5"
         , Svg.Attributes.class "bounds"
         ]
         []
