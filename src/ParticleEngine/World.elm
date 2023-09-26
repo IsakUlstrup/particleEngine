@@ -4,6 +4,7 @@ module ParticleEngine.World exposing
     , addForce
     , addParticle
     , addParticles
+    , addRenderSystem
     , addSpring
     , applyForces
     , applySpringForces
@@ -23,20 +24,21 @@ import ParticleEngine.Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 
 
-type alias World =
+type alias World renderSystem =
     { particles : Dict Int Particle
     , idCounter : Int
     , springs : Dict ( Int, Int ) Spring
     , forces : List ( Bool, Force )
+    , renderSystems : List ( Bool, renderSystem )
     }
 
 
-empty : World
+empty : World renderSystem
 empty =
-    World Dict.empty 0 Dict.empty []
+    World Dict.empty 0 Dict.empty [] []
 
 
-addParticle : Particle -> World -> World
+addParticle : Particle -> World renderSystem -> World renderSystem
 addParticle particle world =
     { world
         | particles = world.particles |> Dict.insert world.idCounter particle
@@ -44,14 +46,19 @@ addParticle particle world =
     }
 
 
-addParticles : List Particle -> World -> World
+addParticles : List Particle -> World renderSystem -> World renderSystem
 addParticles particles world =
     List.foldl addParticle world particles
 
 
+addRenderSystem : renderSystem -> Bool -> World renderSystem -> World renderSystem
+addRenderSystem system enabled world =
+    { world | renderSystems = ( enabled, system ) :: world.renderSystems }
+
+
 {-| Add spring between two particles, length will be calculated based on current distance between the particles
 -}
-addAutoSpring : Int -> Int -> Float -> Float -> World -> World
+addAutoSpring : Int -> Int -> Float -> Float -> World renderSystem -> World renderSystem
 addAutoSpring from to springRate damping world =
     case particleDistance from to world.particles of
         Just dist ->
@@ -61,7 +68,7 @@ addAutoSpring from to springRate damping world =
             world
 
 
-addSpring : Int -> Int -> Spring -> World -> World
+addSpring : Int -> Int -> Spring -> World renderSystem -> World renderSystem
 addSpring from to spring world =
     case particleDistance from to world.particles of
         Just _ ->
@@ -71,7 +78,7 @@ addSpring from to spring world =
             world
 
 
-updateParticles : (Int -> Particle -> Particle) -> World -> World
+updateParticles : (Int -> Particle -> Particle) -> World renderSystem -> World renderSystem
 updateParticles f world =
     { world | particles = Dict.map f world.particles }
 
@@ -102,12 +109,12 @@ constrainPair ( ( from, to ), spring ) particles =
             particles
 
 
-applySpringForces : World -> World
+applySpringForces : World renderSystem -> World renderSystem
 applySpringForces world =
     { world | particles = List.foldl constrainPair world.particles (Dict.toList world.springs) }
 
 
-toggleForce : Int -> World -> World
+toggleForce : Int -> World renderSystem -> World renderSystem
 toggleForce index world =
     let
         helper i force =
@@ -120,12 +127,12 @@ toggleForce index world =
     { world | forces = List.indexedMap helper world.forces }
 
 
-addForce : Force -> Bool -> World -> World
+addForce : Force -> Bool -> World renderSystem -> World renderSystem
 addForce force enabled world =
     { world | forces = ( enabled, force ) :: world.forces }
 
 
-setForce : Int -> Force -> World -> World
+setForce : Int -> Force -> World renderSystem -> World renderSystem
 setForce index force world =
     let
         helper : Int -> ( Bool, Force ) -> ( Bool, Force )
@@ -146,13 +153,13 @@ enabledForces forces =
         |> List.map Tuple.second
 
 
-applyForces : World -> World
+applyForces : World renderSystem -> World renderSystem
 applyForces world =
     world
         |> updateParticles (\_ p -> Particle.applyForces (enabledForces world.forces) p)
 
 
-setParticlePosition : Int -> Vector2 -> World -> World
+setParticlePosition : Int -> Vector2 -> World renderSystem -> World renderSystem
 setParticlePosition id position world =
     let
         updatePosition : Particle -> Particle
@@ -162,7 +169,7 @@ setParticlePosition id position world =
     { world | particles = Dict.update id (Maybe.map updatePosition) world.particles }
 
 
-setParticleMass : Int -> Float -> World -> World
+setParticleMass : Int -> Float -> World renderSystem -> World renderSystem
 setParticleMass id mass world =
     let
         updateMass : Particle -> Particle
@@ -172,7 +179,7 @@ setParticleMass id mass world =
     { world | particles = Dict.update id (Maybe.map updateMass) world.particles }
 
 
-removeSpring : ( Int, Int ) -> World -> World
+removeSpring : ( Int, Int ) -> World renderSystem -> World renderSystem
 removeSpring constraint world =
     let
         keepConstraint : ( Int, Int ) -> Spring -> Bool

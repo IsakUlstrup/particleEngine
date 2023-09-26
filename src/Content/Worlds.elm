@@ -6,11 +6,13 @@ import ParticleEngine.Particle as Particle
 import ParticleEngine.Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2
 import ParticleEngine.World as World exposing (World)
+import RenderSystem exposing (RenderSystem)
 
 
-rope : World
+rope : World RenderSystem
 rope =
     World.empty
+        |> World.addRenderSystem RenderSystem.springs True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
         |> World.addParticle (Particle.new (Vector2.new -150 0) 1)
@@ -39,15 +41,19 @@ rope =
         |> World.addAutoSpring 11 12 1000 100
 
 
-ring : World
+ring : World RenderSystem
 ring =
     World.empty
+        |> World.addRenderSystem RenderSystem.particles True
+        |> World.addRenderSystem RenderSystem.springs True
         |> World.addParticles (nGon Vector2.zero 6 40)
 
 
-bridge : World
+bridge : World RenderSystem
 bridge =
     World.empty
+        |> World.addRenderSystem RenderSystem.particles True
+        |> World.addRenderSystem RenderSystem.springs True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
         |> World.addParticle (Particle.new (Vector2.new -150 0) 1)
@@ -76,9 +82,11 @@ bridge =
         |> World.addAutoSpring 11 12 1000 100
 
 
-gravity : World
+gravity : World RenderSystem
 gravity =
     World.empty
+        |> World.addRenderSystem RenderSystem.particles True
+        |> World.addRenderSystem RenderSystem.springs True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -50 -100) 1)
         |> World.addParticle (Particle.new (Vector2.new 50 -100) 5)
@@ -91,9 +99,10 @@ clothSpring =
     Spring 50 500 100
 
 
-cloth : World
+cloth : World RenderSystem
 cloth =
     World.empty
+        |> World.addRenderSystem RenderSystem.springs True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addForce (Realative <| Vector2.new 100 0) False
         -- row 1, anchors

@@ -20,6 +20,7 @@ import ParticleEngine.Spring exposing (Spring)
 import ParticleEngine.Timing exposing (Timing)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import ParticleEngine.World as World exposing (World)
+import RenderSystem exposing (RenderSystem(..))
 import SidebarView
 import Svg exposing (Svg)
 import Svg.Attributes
@@ -48,8 +49,8 @@ setHeight height config =
 
 
 type alias Model =
-    { world : World
-    , worlds : Dict String World
+    { world : World RenderSystem
+    , worlds : Dict String (World RenderSystem)
     , renderConfig : RenderConfig
     , timing : Timing
     , selected : Maybe Int
@@ -109,7 +110,7 @@ type Msg
     | ClickedConstraint ( Int, Int )
     | SetDtMultiplier Float
     | HoverExitParticle
-    | SetWorld World
+    | SetWorld (World RenderSystem)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -402,7 +403,7 @@ viewSidebarSprings springs =
     ( "Springs (" ++ (String.fromInt <| List.length springList) ++ ")", springList |> List.map viewSpring )
 
 
-viewSidebarWorld : ( String, World ) -> Html Msg
+viewSidebarWorld : ( String, World RenderSystem ) -> Html Msg
 viewSidebarWorld ( name, world ) =
     Html.input
         [ Html.Attributes.type_ "button"
@@ -437,6 +438,32 @@ viewParticleBounds boundary =
         []
 
 
+runRenderSystem : Boundary -> Maybe Int -> Maybe Int -> World RenderSystem -> RenderSystem -> Svg Msg
+runRenderSystem boundary selected hovered world system =
+    case system of
+        RenderParticles ->
+            Svg.g [] (Dict.toList world.particles |> List.map (viewParticle selected hovered))
+
+        RenderSprings ->
+            Svg.g [] (Dict.toList world.springs |> List.filterMap (viewConstraint world.particles))
+
+        RenderBoundary ->
+            viewParticleBounds boundary
+
+
+viewWorld : Boundary -> Maybe Int -> Maybe Int -> RenderConfig -> World RenderSystem -> Svg Msg
+viewWorld boundary selected hovered config world =
+    Svg.svg
+        [ viewBox config
+        , Svg.Attributes.id "game-view"
+        ]
+        (world.renderSystems
+            |> List.filter Tuple.first
+            |> List.map Tuple.second
+            |> List.map (runRenderSystem boundary selected hovered world)
+        )
+
+
 view : Model -> Html Msg
 view model =
     main_ [ Html.Attributes.id "app" ]
@@ -446,21 +473,22 @@ view model =
               , model.world.particles |> Dict.toList |> List.map (viewSidebarParticle model.selected model.hoverParticle)
               )
             , viewSidebarSprings model.world.springs
+            , ( "Render systems (" ++ (model.world.renderSystems |> List.length |> String.fromInt) ++ ")"
+              , model.world.renderSystems |> List.map viewSidebarRenderSystem
+              )
             , viewSidebarStats model
             , viewSidebarTimeControls model.timing.dtMultiplier
             , ( "Worlds"
               , model.worlds |> Dict.toList |> List.map viewSidebarWorld
               )
             ]
-        , Svg.svg
-            [ viewBox model.renderConfig
-            , Svg.Attributes.id "game-view"
-            ]
-            [ viewParticleBounds model.particleBoundary
-            , Svg.g [] (Dict.toList model.world.springs |> List.filterMap (viewConstraint model.world.particles))
-            , Svg.g [] (Dict.toList model.world.particles |> List.map (viewParticle model.selected model.hoverParticle))
-            ]
+        , viewWorld model.particleBoundary model.selected model.hoverParticle model.renderConfig model.world
         ]
+
+
+viewSidebarRenderSystem : ( Bool, RenderSystem ) -> Html Msg
+viewSidebarRenderSystem ( enabled, system ) =
+    Html.p [] [ Html.text <| RenderSystem.toString system ]
 
 
 
