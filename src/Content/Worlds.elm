@@ -12,7 +12,8 @@ import RenderSystem exposing (RenderSystem)
 rope : World RenderSystem
 rope =
     World.empty
-        |> World.addSystem (RenderSystem.springs 10) True
+        |> World.addSystem (RenderSystem.springs 10) False
+        |> World.addSystem RenderSystem.springStress True
         |> World.addSystem RenderSystem.boundary True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)

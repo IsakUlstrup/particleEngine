@@ -3,6 +3,7 @@ module RenderSystem exposing
     , boundary
     , particleVelocity
     , particles
+    , springStress
     , springs
     , toString
     )
@@ -12,6 +13,7 @@ type RenderSystem
     = RenderParticles
     | RenderParticleVelocity
     | RenderSprings Float
+    | RenderSpringStress
     | RenderBoundary
 
 
@@ -30,6 +32,11 @@ springs width =
     RenderSprings width
 
 
+springStress : RenderSystem
+springStress =
+    RenderSpringStress
+
+
 boundary : RenderSystem
 boundary =
     RenderBoundary
@@ -46,6 +53,9 @@ toString renderSystem =
 
         RenderSprings w ->
             "RenderSprings " ++ String.fromFloat w
+
+        RenderSpringStress ->
+            "RenderSpringStress"
 
         RenderBoundary ->
             "RenderBoundary"

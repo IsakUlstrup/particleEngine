@@ -436,6 +436,31 @@ viewParticleVelocity ( _, particle ) =
         []
 
 
+viewSpringStress : Dict Int Particle -> ( ( Int, Int ), Spring ) -> Maybe (Svg msg)
+viewSpringStress particles ( ( from, to ), spring ) =
+    let
+        color : Float -> String
+        color d =
+            "hsl(" ++ String.fromFloat (200 + (min 150 <| d * 10)) ++ ", 50%, 50%)"
+    in
+    case ( Dict.get from particles, Dict.get to particles ) of
+        ( Just p1, Just p2 ) ->
+            Just <|
+                Svg.line
+                    [ Svg.Attributes.x1 <| String.fromFloat p1.position.x
+                    , Svg.Attributes.y1 <| String.fromFloat p1.position.y
+                    , Svg.Attributes.x2 <| String.fromFloat p2.position.x
+                    , Svg.Attributes.y2 <| String.fromFloat p2.position.y
+                    , Svg.Attributes.stroke <| color (abs <| Vector2.distance p1.position p2.position - spring.length)
+                    , Svg.Attributes.strokeWidth "5"
+                    , Svg.Attributes.strokeLinecap "round"
+                    ]
+                    []
+
+        _ ->
+            Nothing
+
+
 runRenderSystem : Boundary -> Maybe Int -> Maybe Int -> World RenderSystem -> RenderSystem -> Svg Msg
 runRenderSystem boundary selected hovered world system =
     case system of
@@ -447,6 +472,9 @@ runRenderSystem boundary selected hovered world system =
 
         RenderSprings width ->
             Svg.g [] (Dict.toList world.springs |> List.filterMap (viewConstraint width world.particles))
+
+        RenderSpringStress ->
+            Svg.g [] (Dict.toList world.springs |> List.filterMap (viewSpringStress world.particles))
 
         RenderBoundary ->
             viewParticleBounds boundary
