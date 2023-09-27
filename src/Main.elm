@@ -451,7 +451,7 @@ viewSpringStress particles ( ( from, to ), spring ) =
                     , Svg.Attributes.y1 <| String.fromFloat p1.position.y
                     , Svg.Attributes.x2 <| String.fromFloat p2.position.x
                     , Svg.Attributes.y2 <| String.fromFloat p2.position.y
-                    , Svg.Attributes.stroke <| color (abs <| Vector2.distance p1.position p2.position - spring.length)
+                    , Svg.Attributes.stroke <| color (Vector2.distance p1.position p2.position - spring.length)
                     , Svg.Attributes.strokeWidth "5"
                     , Svg.Attributes.strokeLinecap "round"
                     ]
