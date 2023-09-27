@@ -6,6 +6,7 @@ module ParticleEngine.Particle exposing
     , new
     , radius
     , step
+    , velocity
     )
 
 import ParticleEngine.Boundary as Boundary exposing (Boundary)
@@ -61,8 +62,7 @@ applyForces forces particle =
 -}
 velocity : Particle -> Vector2
 velocity particle =
-    particle.position
-        |> Vector2.subtract particle.oldPosition
+    Vector2.subtract particle.oldPosition particle.position
 
 
 {-| Step forwards using Verlet integration

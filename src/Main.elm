@@ -417,11 +417,32 @@ viewSidebarSystem index ( enabled, system ) =
         ]
 
 
+viewParticleVelocity : ( Int, Particle ) -> Svg msg
+viewParticleVelocity ( _, particle ) =
+    let
+        scaledVelocity =
+            particle
+                |> Particle.velocity
+                |> Vector2.scale 50
+    in
+    Svg.line
+        [ Svg.Attributes.x1 <| String.fromFloat particle.position.x
+        , Svg.Attributes.y1 <| String.fromFloat particle.position.y
+        , Svg.Attributes.x2 <| String.fromFloat scaledVelocity.x
+        , Svg.Attributes.y2 <| String.fromFloat scaledVelocity.y
+        , Svg.Attributes.stroke "beige"
+        ]
+        []
+
+
 runRenderSystem : Boundary -> Maybe Int -> Maybe Int -> World RenderSystem -> RenderSystem -> Svg Msg
 runRenderSystem boundary selected hovered world system =
     case system of
         RenderParticles ->
             Svg.g [] (Dict.toList world.particles |> List.map (viewParticle selected hovered))
+
+        RenderParticleVelocity ->
+            Svg.g [] (Dict.toList world.particles |> List.map viewParticleVelocity)
 
         RenderSprings width ->
             Svg.g [] (Dict.toList world.springs |> List.filterMap (viewConstraint width world.particles))

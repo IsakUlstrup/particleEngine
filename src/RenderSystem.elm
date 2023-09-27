@@ -1,8 +1,16 @@
-module RenderSystem exposing (RenderSystem(..), boundary, particles, springs, toString)
+module RenderSystem exposing
+    ( RenderSystem(..)
+    , boundary
+    , particleVelocity
+    , particles
+    , springs
+    , toString
+    )
 
 
 type RenderSystem
     = RenderParticles
+    | RenderParticleVelocity
     | RenderSprings Float
     | RenderBoundary
 
@@ -10,6 +18,11 @@ type RenderSystem
 particles : RenderSystem
 particles =
     RenderParticles
+
+
+particleVelocity : RenderSystem
+particleVelocity =
+    RenderParticleVelocity
 
 
 springs : Float -> RenderSystem
@@ -27,6 +40,9 @@ toString renderSystem =
     case renderSystem of
         RenderParticles ->
             "RenderParticles"
+
+        RenderParticleVelocity ->
+            "RenderParticleVelocity"
 
         RenderSprings w ->
             "RenderSprings " ++ String.fromFloat w

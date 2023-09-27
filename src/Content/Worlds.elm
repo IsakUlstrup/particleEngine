@@ -88,6 +88,7 @@ bridge =
 gravity : World RenderSystem
 gravity =
     World.empty
+        |> World.addSystem RenderSystem.particleVelocity True
         |> World.addSystem RenderSystem.particles True
         |> World.addSystem (RenderSystem.springs <| Particle.radius) True
         |> World.addSystem RenderSystem.boundary True
