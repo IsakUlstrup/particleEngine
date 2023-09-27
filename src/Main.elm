@@ -65,11 +65,11 @@ init _ =
 -- UPDATE
 
 
-physicsUpdate : World RenderSystem -> World RenderSystem
-physicsUpdate world =
+physicsUpdate : Boundary -> World RenderSystem -> World RenderSystem
+physicsUpdate particleBoundary world =
     world
         |> World.applyForces
-        -- |> World.updateParticles (\_ p -> Particle.constrain model.particleBoundary p)
+        |> World.updateParticles (\_ p -> Particle.constrain particleBoundary p)
         |> World.applySpringForces
         |> World.updateParticles (\_ p -> Particle.step world.stepTime p)
 
@@ -97,7 +97,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick dt ->
-            ( { model | world = World.tick dt physicsUpdate model.world }
+            ( { model | world = World.tick dt (physicsUpdate model.particleBoundary) model.world }
             , Cmd.none
             )
 
