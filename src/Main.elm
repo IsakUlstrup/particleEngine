@@ -406,14 +406,15 @@ viewParticleBounds boundary =
         , Svg.Attributes.height <| String.fromFloat boundary.height
         , Svg.Attributes.x <| String.fromFloat (boundary.center.x - (boundary.width / 2))
         , Svg.Attributes.y <| String.fromFloat (boundary.center.y - (boundary.height / 2))
-        , Svg.Attributes.rx "5"
         , Svg.Attributes.class "bounds"
+        , Svg.Attributes.fill "none"
+        , Svg.Attributes.stroke "black"
         ]
         []
 
 
-viewSidebarRenderSystem : Int -> ( Bool, RenderSystem ) -> Html Msg
-viewSidebarRenderSystem index ( enabled, system ) =
+viewSidebarSystem : Int -> ( Bool, RenderSystem ) -> Html Msg
+viewSidebarSystem index ( enabled, system ) =
     Html.div [ Html.Attributes.class "labeled-checkbox" ]
         [ Html.input
             [ Html.Attributes.type_ "checkbox"
@@ -448,8 +449,8 @@ view model =
               , model.world.particles |> Dict.toList |> List.map (viewSidebarParticle model.selected model.hoverParticle)
               )
             , viewSidebarSprings model.world.springs
-            , ( "Render systems (" ++ (model.world.systems |> List.length |> String.fromInt) ++ ")"
-              , model.world.systems |> List.indexedMap viewSidebarRenderSystem
+            , ( "Systems (" ++ (model.world.systems |> List.length |> String.fromInt) ++ ")"
+              , model.world.systems |> List.indexedMap viewSidebarSystem
               )
             , viewSidebarStats model
             , viewSidebarTimeControls model.timing.dtMultiplier
