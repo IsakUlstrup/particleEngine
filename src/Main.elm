@@ -441,7 +441,7 @@ viewSpringStress particles ( ( from, to ), spring ) =
     let
         color : Float -> String
         color d =
-            "hsl(" ++ String.fromFloat (200 + (min 150 <| d * 10)) ++ ", 50%, 50%)"
+            "hsl(" ++ String.fromFloat (300 + (min 150 <| d * 10)) ++ ", 50%, " ++ String.fromFloat (97 - (min 50 <| abs d * 10)) ++ "%)"
     in
     case ( Dict.get from particles, Dict.get to particles ) of
         ( Just p1, Just p2 ) ->
