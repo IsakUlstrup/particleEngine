@@ -424,6 +424,7 @@ viewParticleVelocity ( _, particle ) =
             particle
                 |> Particle.velocity
                 |> Vector2.scale 50
+                |> Vector2.add particle.position
     in
     Svg.line
         [ Svg.Attributes.x1 <| String.fromFloat particle.position.x
