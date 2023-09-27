@@ -40,6 +40,10 @@ empty =
     World Dict.empty 0 Dict.empty [] []
 
 
+
+-- PARTICLE
+
+
 addParticle : Particle -> World a -> World a
 addParticle particle world =
     { world
@@ -53,9 +57,66 @@ addParticles particles world =
     List.foldl addParticle world particles
 
 
+updateParticles : (Int -> Particle -> Particle) -> World a -> World a
+updateParticles f world =
+    { world | particles = Dict.map f world.particles }
+
+
+particleDistance : Int -> Int -> Dict Int Particle -> Maybe Float
+particleDistance one two particles =
+    case ( Dict.get one particles, Dict.get two particles ) of
+        ( Just p1, Just p2 ) ->
+            Just <| Vector2.distance p1.position p2.position
+
+        _ ->
+            Nothing
+
+
+setParticlePosition : Int -> Vector2 -> World a -> World a
+setParticlePosition id position world =
+    let
+        updatePosition : Particle -> Particle
+        updatePosition p =
+            { p | position = position, oldPosition = position }
+    in
+    { world | particles = Dict.update id (Maybe.map updatePosition) world.particles }
+
+
+setParticleMass : Int -> Float -> World a -> World a
+setParticleMass id mass world =
+    let
+        updateMass : Particle -> Particle
+        updateMass p =
+            { p | mass = mass }
+    in
+    { world | particles = Dict.update id (Maybe.map updateMass) world.particles }
+
+
+
+-- SYSTEM
+
+
 addSystem : a -> Bool -> World a -> World a
 addSystem system enabled world =
     { world | systems = ( enabled, system ) :: world.systems }
+
+
+toggleSystem : Int -> World a -> World a
+toggleSystem index world =
+    let
+        toggleHelper : Int -> ( Bool, a ) -> ( Bool, a )
+        toggleHelper i ( enabled, system ) =
+            if i == index then
+                ( not enabled, system )
+
+            else
+                ( enabled, system )
+    in
+    { world | systems = List.indexedMap toggleHelper world.systems }
+
+
+
+-- SPRING
 
 
 {-| Add spring between two particles, length will be calculated based on current distance between the particles
@@ -80,24 +141,19 @@ addSpring from to spring world =
             world
 
 
+removeSpring : ( Int, Int ) -> World a -> World a
+removeSpring constraint world =
+    let
+        keepConstraint : ( Int, Int ) -> Spring -> Bool
+        keepConstraint ids _ =
+            ids /= constraint
+    in
+    { world | springs = Dict.filter keepConstraint world.springs }
+
+
 updateSpring : ( Int, Int ) -> (Spring -> Spring) -> World a -> World a
 updateSpring connections f world =
     { world | springs = Dict.update connections (Maybe.map f) world.springs }
-
-
-updateParticles : (Int -> Particle -> Particle) -> World a -> World a
-updateParticles f world =
-    { world | particles = Dict.map f world.particles }
-
-
-particleDistance : Int -> Int -> Dict Int Particle -> Maybe Float
-particleDistance one two particles =
-    case ( Dict.get one particles, Dict.get two particles ) of
-        ( Just p1, Just p2 ) ->
-            Just <| Vector2.distance p1.position p2.position
-
-        _ ->
-            Nothing
 
 
 constrainPair : ( ( Int, Int ), Spring ) -> Dict Int Particle -> Dict Int Particle
@@ -119,6 +175,10 @@ constrainPair ( ( from, to ), spring ) particles =
 applySpringForces : World a -> World a
 applySpringForces world =
     { world | particles = List.foldl constrainPair world.particles (Dict.toList world.springs) }
+
+
+
+-- FORCE
 
 
 toggleForce : Int -> World a -> World a
@@ -165,47 +225,3 @@ applyForces : World a -> World a
 applyForces world =
     world
         |> updateParticles (\_ p -> Particle.applyForces (enabledForces world.forces) p)
-
-
-setParticlePosition : Int -> Vector2 -> World a -> World a
-setParticlePosition id position world =
-    let
-        updatePosition : Particle -> Particle
-        updatePosition p =
-            { p | position = position, oldPosition = position }
-    in
-    { world | particles = Dict.update id (Maybe.map updatePosition) world.particles }
-
-
-setParticleMass : Int -> Float -> World a -> World a
-setParticleMass id mass world =
-    let
-        updateMass : Particle -> Particle
-        updateMass p =
-            { p | mass = mass }
-    in
-    { world | particles = Dict.update id (Maybe.map updateMass) world.particles }
-
-
-removeSpring : ( Int, Int ) -> World a -> World a
-removeSpring constraint world =
-    let
-        keepConstraint : ( Int, Int ) -> Spring -> Bool
-        keepConstraint ids _ =
-            ids /= constraint
-    in
-    { world | springs = Dict.filter keepConstraint world.springs }
-
-
-toggleSystem : Int -> World a -> World a
-toggleSystem index world =
-    let
-        toggleHelper : Int -> ( Bool, a ) -> ( Bool, a )
-        toggleHelper i ( enabled, system ) =
-            if i == index then
-                ( not enabled, system )
-
-            else
-                ( enabled, system )
-    in
-    { world | systems = List.indexedMap toggleHelper world.systems }
