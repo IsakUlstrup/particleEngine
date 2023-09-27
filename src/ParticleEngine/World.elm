@@ -15,6 +15,7 @@ module ParticleEngine.World exposing
     , setParticlePosition
     , toggleForce
     , updateParticles
+    , updateSpring
     )
 
 import Dict exposing (Dict)
@@ -76,6 +77,11 @@ addSpring from to spring world =
 
         Nothing ->
             world
+
+
+updateSpring : ( Int, Int ) -> (Spring -> Spring) -> World renderSystem -> World renderSystem
+updateSpring connections f world =
+    { world | springs = Dict.update connections (Maybe.map f) world.springs }
 
 
 updateParticles : (Int -> Particle -> Particle) -> World renderSystem -> World renderSystem

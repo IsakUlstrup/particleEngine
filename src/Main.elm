@@ -95,6 +95,7 @@ type Msg
     | SetDtMultiplier Float
     | HoverExitParticle
     | SetWorld (World RenderSystem)
+    | SetSpring ( Int, Int ) Spring
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -178,6 +179,9 @@ update msg model =
 
         SetWorld world ->
             ( { model | world = world }, Cmd.none )
+
+        SetSpring connections spring ->
+            ( { model | world = World.updateSpring connections (always spring) model.world }, Cmd.none )
 
 
 
@@ -369,12 +373,13 @@ viewSidebarSprings springs =
         springList =
             Dict.toList springs
 
-        viewSpring : ( ( Int, Int ), Spring ) -> Html msg
+        viewSpring : ( ( Int, Int ), Spring ) -> Html Msg
         viewSpring ( ( from, to ), spring ) =
             Html.div []
-                [ Html.p [] [ Html.text <| String.fromInt from ++ " -> " ++ String.fromInt to ]
-                , Html.p [] [ Html.text <| "Length: " ++ String.fromFloat spring.length ]
-                , Html.p [] [ Html.text <| "Rate: " ++ String.fromFloat spring.rate ]
+                [ Html.p [] [ Html.text <| String.fromInt from ++ ", " ++ String.fromInt to ]
+                , SidebarView.viewLabeledInput "number" (String.fromFloat spring.length) "Length" (\i -> SetSpring ( from, to ) { spring | length = String.toFloat i |> Maybe.withDefault spring.length })
+                , SidebarView.viewLabeledInput "number" (String.fromFloat spring.rate) "Rate" (\i -> SetSpring ( from, to ) { spring | rate = String.toFloat i |> Maybe.withDefault spring.rate })
+                , SidebarView.viewLabeledInput "number" (String.fromFloat spring.damping) "Damping" (\i -> SetSpring ( from, to ) { spring | damping = String.toFloat i |> Maybe.withDefault spring.damping })
                 ]
     in
     ( "Springs (" ++ (String.fromInt <| List.length springList) ++ ")", springList |> List.map viewSpring )
