@@ -17,7 +17,6 @@ import ParticleEngine.Force as Force exposing (Force(..))
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Render as Render exposing (RenderConfig)
 import ParticleEngine.Spring exposing (Spring)
-import ParticleEngine.Timing as Timing exposing (Timing)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import ParticleEngine.World as World exposing (World)
 import RenderSystem exposing (RenderSystem(..))
@@ -36,7 +35,6 @@ type alias Model =
     { world : World RenderSystem
     , worlds : Dict String (World RenderSystem)
     , renderConfig : RenderConfig
-    , timing : Timing
     , selected : Maybe Int
     , hoverParticle : Maybe Int
     , particleBoundary : Boundary
@@ -56,7 +54,6 @@ init _ =
             ]
         )
         (RenderConfig 1000 1000)
-        Timing.new
         Nothing
         Nothing
         (Boundary.new Vector2.zero 1000 1000)
@@ -68,16 +65,13 @@ init _ =
 -- UPDATE
 
 
-physicsUpdate : Model -> Model
-physicsUpdate model =
-    { model
-        | world =
-            model.world
-                |> World.applyForces
-                |> World.updateParticles (\_ p -> Particle.constrain model.particleBoundary p)
-                |> World.applySpringForces
-                |> World.updateParticles (\_ p -> Particle.step model.timing.stepTime p)
-    }
+physicsUpdate : World RenderSystem -> World RenderSystem
+physicsUpdate world =
+    world
+        |> World.applyForces
+        -- |> World.updateParticles (\_ p -> Particle.constrain model.particleBoundary p)
+        |> World.applySpringForces
+        |> World.updateParticles (\_ p -> Particle.step world.stepTime p)
 
 
 type Msg
@@ -103,11 +97,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick dt ->
-            let
-                ( newModel, newTiming ) =
-                    Timing.fixedUpdate physicsUpdate model dt model.timing
-            in
-            ( { newModel | timing = newTiming }
+            ( { model | world = World.tick dt physicsUpdate model.world }
             , Cmd.none
             )
 
@@ -176,7 +166,7 @@ update msg model =
             ( { model | world = World.removeSpring constraintIds model.world }, Cmd.none )
 
         SetDtMultiplier multi ->
-            ( { model | timing = Timing.setDtMulti multi model.timing }, Cmd.none )
+            ( { model | world = World.setDtMulti multi model.world }, Cmd.none )
 
         SetWorld world ->
             ( { model | world = world }, Cmd.none )
@@ -337,16 +327,16 @@ viewSidebarParticle selected hovered ( id, p ) =
 viewSidebarStats : Model -> ( String, List (Html Msg) )
 viewSidebarStats model =
     let
-        fpsString : Timing -> String
-        fpsString timing =
-            Timing.averageFps timing
+        fpsString : World a -> String
+        fpsString world =
+            World.averageFps world
                 |> String.fromFloat
                 |> String.split "."
                 |> List.head
                 |> Maybe.withDefault "-"
     in
     ( "Stats"
-    , [ Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.timing ]
+    , [ Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.world ]
       ]
     )
 
@@ -453,7 +443,7 @@ view model =
               , model.world.systems |> List.indexedMap viewSidebarSystem
               )
             , viewSidebarStats model
-            , viewSidebarTimeControls model.timing.dtMultiplier
+            , viewSidebarTimeControls model.world.dtMultiplier
             , ( "Worlds"
               , model.worlds |> Dict.toList |> List.map viewSidebarWorld
               )

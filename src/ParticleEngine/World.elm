@@ -8,11 +8,14 @@ module ParticleEngine.World exposing
     , addSystem
     , applyForces
     , applySpringForces
+    , averageFps
     , empty
     , removeSpring
+    , setDtMulti
     , setForce
     , setParticleMass
     , setParticlePosition
+    , tick
     , toggleForce
     , toggleSystem
     , updateParticles
@@ -32,12 +35,16 @@ type alias World a =
     , springs : Dict ( Int, Int ) Spring
     , forces : List ( Bool, Force )
     , systems : List ( Bool, a )
+    , stepTime : Float
+    , timeAccum : Float
+    , dtMultiplier : Float
+    , dtHistory : List Float
     }
 
 
 empty : World a
 empty =
-    World Dict.empty 0 Dict.empty [] []
+    World Dict.empty 0 Dict.empty [] [] 0.02 0 1 []
 
 
 
@@ -225,3 +232,55 @@ applyForces : World a -> World a
 applyForces world =
     world
         |> updateParticles (\_ p -> Particle.applyForces (enabledForces world.forces) p)
+
+
+
+-- Timing
+
+
+addDtHistory : Float -> World a -> World a
+addDtHistory dt world =
+    { world | dtHistory = dt :: world.dtHistory |> List.take 20 }
+
+
+setDtMulti : Float -> World a -> World a
+setDtMulti multi world =
+    { world | dtMultiplier = multi }
+
+
+fixedUpdate : (World a -> World a) -> Float -> World a -> World a
+fixedUpdate f dt world =
+    let
+        adjustedDt : Float
+        adjustedDt =
+            (dt * world.dtMultiplier) / 1000
+    in
+    { world | timeAccum = world.timeAccum + adjustedDt }
+        |> addDtHistory dt
+        |> updateModel f
+
+
+updateModel : (World a -> World a) -> World a -> World a
+updateModel f world =
+    if world.timeAccum >= world.stepTime then
+        { world | timeAccum = world.timeAccum - world.stepTime }
+            |> f
+            |> updateModel f
+
+    else
+        world
+
+
+averageDelta : List Float -> Float
+averageDelta dts =
+    List.sum dts / toFloat (List.length dts)
+
+
+averageFps : World a -> Float
+averageFps world =
+    1000 / averageDelta world.dtHistory
+
+
+tick : Float -> (World a -> World a) -> World a -> World a
+tick dt f world =
+    fixedUpdate f dt world
