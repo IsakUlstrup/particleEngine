@@ -55,8 +55,9 @@ ball =
         |> World.addSystem (RenderSystem.springs <| Particle.radius) False
         |> World.addSystem RenderSystem.springStress True
         |> World.addSystem RenderSystem.boundary True
-        |> World.addForce (Absolute <| Vector2.new 10 50) True
+        |> World.addForce (Absolute <| Vector2.new 70 300) True
         |> World.addParticles (nGon Vector2.zero 6 100)
+        |> World.addParticle (Particle.new (Vector2.new -40 -300) 0)
         -- 0
         |> ringSpring 0 1
         |> ringSpring 0 2
@@ -93,6 +94,7 @@ ball =
         |> ringSpring 5 2
         |> ringSpring 5 3
         |> ringSpring 5 4
+        |> World.addAutoSpring 3 6 100 10
 
 
 bridge : World RenderSystem
