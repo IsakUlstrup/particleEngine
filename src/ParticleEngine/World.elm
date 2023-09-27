@@ -22,7 +22,7 @@ module ParticleEngine.World exposing
 import Dict exposing (Dict)
 import ParticleEngine.Force exposing (Force)
 import ParticleEngine.Particle as Particle exposing (Particle)
-import ParticleEngine.Spring exposing (Spring)
+import ParticleEngine.Spring as Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 
 
@@ -64,7 +64,7 @@ addAutoSpring : Int -> Int -> Float -> Float -> World a -> World a
 addAutoSpring from to springRate damping world =
     case particleDistance from to world.particles of
         Just dist ->
-            { world | springs = world.springs |> Dict.insert ( from, to ) (Spring dist springRate damping) }
+            { world | springs = world.springs |> Dict.insert ( from, to ) (Spring.new dist springRate damping) }
 
         Nothing ->
             world

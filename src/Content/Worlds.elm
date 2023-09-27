@@ -3,7 +3,7 @@ module Content.Worlds exposing (bridge, cloth, gravity, ring, rope)
 import Content.Shapes exposing (nGon)
 import ParticleEngine.Force exposing (Force(..))
 import ParticleEngine.Particle as Particle
-import ParticleEngine.Spring exposing (Spring)
+import ParticleEngine.Spring as Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2
 import ParticleEngine.World as World exposing (World)
 import RenderSystem exposing (RenderSystem)
@@ -95,12 +95,12 @@ gravity =
         |> World.addParticle (Particle.new (Vector2.new -50 -100) 1)
         |> World.addParticle (Particle.new (Vector2.new 50 -100) 5)
         |> World.addParticle (Particle.new (Vector2.new 150 -50) 5)
-        |> World.addSpring 1 2 (Spring 50 1000 1000)
+        |> World.addSpring 1 2 (Spring.new 50 1000 1000)
 
 
 clothSpring : Spring
 clothSpring =
-    Spring 50 500 100
+    Spring.new 50 500 100
 
 
 cloth : World RenderSystem
