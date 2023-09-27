@@ -48,7 +48,7 @@ init _ =
         (Dict.fromList
             [ ( "Bridge", Content.Worlds.bridge )
             , ( "Rope", Content.Worlds.rope )
-            , ( "Ring", Content.Worlds.ring )
+            , ( "Ball", Content.Worlds.ball )
             , ( "Gravity", Content.Worlds.gravity )
             , ( "Cloth", Content.Worlds.cloth )
             ]

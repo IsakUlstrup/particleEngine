@@ -1,4 +1,4 @@
-module Content.Worlds exposing (bridge, cloth, gravity, ring, rope)
+module Content.Worlds exposing (ball, bridge, cloth, gravity, rope)
 
 import Content.Shapes exposing (nGon)
 import ParticleEngine.Force exposing (Force(..))
@@ -43,13 +43,56 @@ rope =
         |> World.addAutoSpring 11 12 1000 100
 
 
-ring : World RenderSystem
-ring =
+ringSpring : Int -> Int -> World a -> World a
+ringSpring from to =
+    World.addAutoSpring from to 100 5
+
+
+ball : World RenderSystem
+ball =
     World.empty
         |> World.addSystem RenderSystem.particles True
-        |> World.addSystem (RenderSystem.springs <| Particle.radius) True
+        |> World.addSystem (RenderSystem.springs <| Particle.radius) False
+        |> World.addSystem RenderSystem.springStress True
         |> World.addSystem RenderSystem.boundary True
-        |> World.addParticles (nGon Vector2.zero 6 40)
+        |> World.addForce (Absolute <| Vector2.new 10 50) True
+        |> World.addParticles (nGon Vector2.zero 6 100)
+        -- 0
+        |> ringSpring 0 1
+        |> ringSpring 0 2
+        |> ringSpring 0 3
+        |> ringSpring 0 4
+        |> ringSpring 0 5
+        -- 1
+        |> ringSpring 1 0
+        |> ringSpring 1 2
+        |> ringSpring 1 3
+        |> ringSpring 1 4
+        |> ringSpring 1 5
+        -- 2
+        |> ringSpring 2 0
+        |> ringSpring 2 1
+        |> ringSpring 2 3
+        |> ringSpring 2 4
+        |> ringSpring 2 5
+        -- 3
+        |> ringSpring 3 0
+        |> ringSpring 2 1
+        |> ringSpring 3 2
+        |> ringSpring 3 4
+        |> ringSpring 3 5
+        -- 4
+        |> ringSpring 4 0
+        |> ringSpring 4 1
+        |> ringSpring 4 2
+        |> ringSpring 4 3
+        |> ringSpring 4 5
+        -- 5
+        |> ringSpring 5 0
+        |> ringSpring 5 1
+        |> ringSpring 5 2
+        |> ringSpring 5 3
+        |> ringSpring 5 4
 
 
 bridge : World RenderSystem
