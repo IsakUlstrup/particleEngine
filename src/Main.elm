@@ -448,8 +448,8 @@ view model =
               , model.world.particles |> Dict.toList |> List.map (viewSidebarParticle model.selected model.hoverParticle)
               )
             , viewSidebarSprings model.world.springs
-            , ( "Render systems (" ++ (model.world.renderSystems |> List.length |> String.fromInt) ++ ")"
-              , model.world.renderSystems |> List.indexedMap viewSidebarRenderSystem
+            , ( "Render systems (" ++ (model.world.systems |> List.length |> String.fromInt) ++ ")"
+              , model.world.systems |> List.indexedMap viewSidebarRenderSystem
               )
             , viewSidebarStats model
             , viewSidebarTimeControls model.timing.dtMultiplier

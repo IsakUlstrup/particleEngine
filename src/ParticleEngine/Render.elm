@@ -44,7 +44,7 @@ viewWorld runRenderSystem config world =
         [ viewBox config
         , Svg.Attributes.id "game-view"
         ]
-        (world.renderSystems
+        (world.systems
             |> List.filter Tuple.first
             |> List.map Tuple.second
             |> List.map (runRenderSystem world)
