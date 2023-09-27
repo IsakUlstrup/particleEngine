@@ -96,6 +96,7 @@ type Msg
     | HoverExitParticle
     | SetWorld (World RenderSystem)
     | SetSpring ( Int, Int ) Spring
+    | ToggleSystem Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -182,6 +183,9 @@ update msg model =
 
         SetSpring connections spring ->
             ( { model | world = World.updateSpring connections (always spring) model.world }, Cmd.none )
+
+        ToggleSystem index ->
+            ( { model | world = World.toggleSystem index model.world }, Cmd.none )
 
 
 
@@ -408,6 +412,20 @@ viewParticleBounds boundary =
         []
 
 
+viewSidebarRenderSystem : Int -> ( Bool, RenderSystem ) -> Html Msg
+viewSidebarRenderSystem index ( enabled, system ) =
+    Html.div [ Html.Attributes.class "labeled-checkbox" ]
+        [ Html.input
+            [ Html.Attributes.type_ "checkbox"
+            , Html.Attributes.checked enabled
+            , Html.Events.onClick (ToggleSystem index)
+            , Html.Attributes.id <| "system-enabled" ++ String.fromInt index
+            ]
+            []
+        , Html.label [ Html.Attributes.for <| "system-enabled" ++ String.fromInt index ] [ Html.text <| RenderSystem.toString system ]
+        ]
+
+
 runRenderSystem : Boundary -> Maybe Int -> Maybe Int -> World RenderSystem -> RenderSystem -> Svg Msg
 runRenderSystem boundary selected hovered world system =
     case system of
@@ -431,7 +449,7 @@ view model =
               )
             , viewSidebarSprings model.world.springs
             , ( "Render systems (" ++ (model.world.renderSystems |> List.length |> String.fromInt) ++ ")"
-              , model.world.renderSystems |> List.map viewSidebarRenderSystem
+              , model.world.renderSystems |> List.indexedMap viewSidebarRenderSystem
               )
             , viewSidebarStats model
             , viewSidebarTimeControls model.timing.dtMultiplier
@@ -441,20 +459,6 @@ view model =
             ]
         , Render.viewWorld (runRenderSystem model.particleBoundary model.selected model.hoverParticle) model.renderConfig model.world
         ]
-
-
-viewSidebarRenderSystem : ( Bool, RenderSystem ) -> Html Msg
-viewSidebarRenderSystem ( enabled, system ) =
-    let
-        enabledString : String
-        enabledString =
-            if enabled then
-                "Enabled"
-
-            else
-                "Disabled"
-    in
-    Html.p [] [ Html.text <| RenderSystem.toString system ++ " " ++ enabledString ]
 
 
 

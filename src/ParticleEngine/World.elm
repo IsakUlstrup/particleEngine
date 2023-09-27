@@ -14,6 +14,7 @@ module ParticleEngine.World exposing
     , setParticleMass
     , setParticlePosition
     , toggleForce
+    , toggleSystem
     , updateParticles
     , updateSpring
     )
@@ -194,3 +195,17 @@ removeSpring constraint world =
             ids /= constraint
     in
     { world | springs = Dict.filter keepConstraint world.springs }
+
+
+toggleSystem : Int -> World renderSystem -> World renderSystem
+toggleSystem index world =
+    let
+        toggleHelper : Int -> ( Bool, renderSystem ) -> ( Bool, renderSystem )
+        toggleHelper i ( enabled, system ) =
+            if i == index then
+                ( not enabled, system )
+
+            else
+                ( enabled, system )
+    in
+    { world | renderSystems = List.indexedMap toggleHelper world.renderSystems }
