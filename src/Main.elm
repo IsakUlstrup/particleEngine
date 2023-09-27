@@ -436,12 +436,12 @@ viewParticleVelocity ( _, particle ) =
         []
 
 
-viewSpringStress : Dict Int Particle -> ( ( Int, Int ), Spring ) -> Maybe (Svg msg)
+viewSpringStress : Dict Int Particle -> ( ( Int, Int ), Spring ) -> Maybe (Svg Msg)
 viewSpringStress particles ( ( from, to ), spring ) =
     let
         color : Float -> String
         color d =
-            "hsl(" ++ String.fromFloat (300 + (min 150 <| d * 10)) ++ ", 50%, " ++ String.fromFloat (97 - (min 50 <| abs d * 10)) ++ "%)"
+            "hsl(" ++ String.fromFloat (300 + (min 50 <| d * 5)) ++ ", 50%, " ++ String.fromFloat (97 - (min 50 <| abs d * 10)) ++ "%)"
     in
     case ( Dict.get from particles, Dict.get to particles ) of
         ( Just p1, Just p2 ) ->
@@ -454,6 +454,7 @@ viewSpringStress particles ( ( from, to ), spring ) =
                     , Svg.Attributes.stroke <| color (Vector2.distance p1.position p2.position - spring.length)
                     , Svg.Attributes.strokeWidth "5"
                     , Svg.Attributes.strokeLinecap "round"
+                    , Svg.Events.onClick <| ClickedConstraint ( from, to )
                     ]
                     []
 

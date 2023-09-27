@@ -151,6 +151,7 @@ clothSpring =
 cloth : World RenderSystem
 cloth =
     World.empty
+        |> World.addSystem RenderSystem.springStress False
         |> World.addSystem (RenderSystem.springs 5) True
         |> World.addSystem RenderSystem.boundary True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
