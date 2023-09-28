@@ -2,6 +2,7 @@ module System exposing
     ( System(..)
     , constrain
     , force
+    , gravity
     , particleVelocity
     , particles
     , springStress
@@ -20,6 +21,7 @@ type System
     | RenderSpringStress
     | ConstrainParticles Boundary
     | Force Vector2
+    | Gravity Vector2
 
 
 particles : System
@@ -52,6 +54,11 @@ force f =
     Force f
 
 
+gravity : Vector2 -> System
+gravity f =
+    Gravity f
+
+
 toString : System -> String
 toString renderSystem =
     case renderSystem of
@@ -72,3 +79,6 @@ toString renderSystem =
 
         Force f ->
             "Force " ++ Vector2.toString f
+
+        Gravity f ->
+            "Gravity " ++ Vector2.toString f

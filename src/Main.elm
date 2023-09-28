@@ -92,6 +92,9 @@ runSystem system particle =
         Force f ->
             Particle.applyForce f particle
 
+        Gravity f ->
+            Particle.applyGravity f particle
+
 
 type Msg
     = Tick Float
@@ -435,6 +438,9 @@ runRenderSystem selected hovered world system =
             viewParticleBounds b
 
         Force _ ->
+            Svg.g [] []
+
+        Gravity _ ->
             Svg.g [] []
 
 
