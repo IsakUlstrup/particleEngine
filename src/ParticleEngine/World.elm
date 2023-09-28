@@ -122,6 +122,17 @@ toggleSystem index world =
     { world | systems = List.indexedMap toggleHelper world.systems }
 
 
+runSystems : (a -> Particle -> Particle) -> World a -> World a
+runSystems f world =
+    let
+        runSystem : a -> World a -> World a
+        runSystem s w =
+            updateParticles (\_ p -> f s p) w
+    in
+    List.foldl runSystem world (world.systems |> List.filter Tuple.first |> List.map Tuple.second)
+        |> updateParticles (\_ p -> Particle.step world.stepTime p)
+
+
 
 -- SPRING
 
@@ -281,6 +292,6 @@ averageFps world =
     1000 / averageDelta world.dtHistory
 
 
-tick : Float -> (World a -> World a) -> World a -> World a
+tick : Float -> (a -> Particle -> Particle) -> World a -> World a
 tick dt f world =
-    fixedUpdate f dt world
+    fixedUpdate (runSystems f) dt world

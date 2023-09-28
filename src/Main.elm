@@ -19,11 +19,11 @@ import ParticleEngine.Render as Render exposing (RenderConfig)
 import ParticleEngine.Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import ParticleEngine.World as World exposing (World)
-import RenderSystem exposing (RenderSystem(..))
 import SidebarView
 import Svg exposing (Svg)
 import Svg.Attributes
 import Svg.Events
+import System exposing (System(..))
 import Task
 
 
@@ -32,8 +32,8 @@ import Task
 
 
 type alias Model =
-    { world : World RenderSystem
-    , worlds : Dict String (World RenderSystem)
+    { world : World System
+    , worlds : Dict String (World System)
     , renderConfig : RenderConfig
     , selected : Maybe Int
     , hoverParticle : Maybe Int
@@ -63,15 +63,35 @@ init _ =
 
 
 -- UPDATE
+-- physicsUpdate : Boundary -> World System -> World System
+-- physicsUpdate particleBoundary world =
+--     world
+--         |> World.applyForces
+--         |> World.updateParticles (\_ p -> Particle.constrain particleBoundary p)
+--         |> World.applySpringForces
+--         |> World.updateParticles (\_ p -> Particle.step world.stepTime p)
 
 
-physicsUpdate : Boundary -> World RenderSystem -> World RenderSystem
-physicsUpdate particleBoundary world =
-    world
-        |> World.applyForces
-        |> World.updateParticles (\_ p -> Particle.constrain particleBoundary p)
-        |> World.applySpringForces
-        |> World.updateParticles (\_ p -> Particle.step world.stepTime p)
+runSystem : System -> Particle -> Particle
+runSystem system particle =
+    case system of
+        ConstrainParticles b ->
+            Particle.constrain b particle
+
+        RenderParticles ->
+            particle
+
+        RenderParticleVelocity ->
+            particle
+
+        RenderSprings _ ->
+            particle
+
+        RenderSpringStress ->
+            particle
+
+        Force f ->
+            Particle.applyForce (Realative f) particle
 
 
 type Msg
@@ -88,7 +108,7 @@ type Msg
     | ClickedConstraint ( Int, Int )
     | SetDtMultiplier Float
     | HoverExitParticle
-    | SetWorld (World RenderSystem)
+    | SetWorld (World System)
     | SetSpring ( Int, Int ) Spring
     | ToggleSystem Int
 
@@ -97,7 +117,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick dt ->
-            ( { model | world = World.tick dt (physicsUpdate model.particleBoundary) model.world }
+            ( { model | world = World.tick dt runSystem model.world }
             , Cmd.none
             )
 
@@ -379,7 +399,7 @@ viewSidebarSprings springs =
     ( "Springs (" ++ (String.fromInt <| List.length springList) ++ ")", springList |> List.map viewSpring )
 
 
-viewSidebarWorld : ( String, World RenderSystem ) -> Html Msg
+viewSidebarWorld : ( String, World System ) -> Html Msg
 viewSidebarWorld ( name, world ) =
     Html.input
         [ Html.Attributes.type_ "button"
@@ -403,7 +423,7 @@ viewParticleBounds boundary =
         []
 
 
-viewSidebarSystem : Int -> ( Bool, RenderSystem ) -> Html Msg
+viewSidebarSystem : Int -> ( Bool, System ) -> Html Msg
 viewSidebarSystem index ( enabled, system ) =
     Html.div [ Html.Attributes.class "labeled-checkbox" ]
         [ Html.input
@@ -413,7 +433,7 @@ viewSidebarSystem index ( enabled, system ) =
             , Html.Attributes.id <| "system-enabled" ++ String.fromInt index
             ]
             []
-        , Html.label [ Html.Attributes.for <| "system-enabled" ++ String.fromInt index ] [ Html.text <| RenderSystem.toString system ]
+        , Html.label [ Html.Attributes.for <| "system-enabled" ++ String.fromInt index ] [ Html.text <| System.toString system ]
         ]
 
 
@@ -462,8 +482,8 @@ viewSpringStress particles ( ( from, to ), spring ) =
             Nothing
 
 
-runRenderSystem : Boundary -> Maybe Int -> Maybe Int -> World RenderSystem -> RenderSystem -> Svg Msg
-runRenderSystem boundary selected hovered world system =
+runRenderSystem : Maybe Int -> Maybe Int -> World System -> System -> Svg Msg
+runRenderSystem selected hovered world system =
     case system of
         RenderParticles ->
             Svg.g [] (Dict.toList world.particles |> List.map (viewParticle selected hovered))
@@ -477,8 +497,11 @@ runRenderSystem boundary selected hovered world system =
         RenderSpringStress ->
             Svg.g [] (Dict.toList world.springs |> List.filterMap (viewSpringStress world.particles))
 
-        RenderBoundary ->
-            viewParticleBounds boundary
+        ConstrainParticles b ->
+            viewParticleBounds b
+
+        Force _ ->
+            Svg.g [] []
 
 
 view : Model -> Html Msg
@@ -499,7 +522,7 @@ view model =
               , model.worlds |> Dict.toList |> List.map viewSidebarWorld
               )
             ]
-        , Render.viewWorld (runRenderSystem model.particleBoundary model.selected model.hoverParticle) model.renderConfig model.world
+        , Render.viewWorld (runRenderSystem model.selected model.hoverParticle) model.renderConfig model.world
         ]
 
 

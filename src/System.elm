@@ -1,6 +1,7 @@
-module RenderSystem exposing
-    ( RenderSystem(..)
-    , boundary
+module System exposing
+    ( System(..)
+    , constrain
+    , force
     , particleVelocity
     , particles
     , springStress
@@ -8,41 +9,50 @@ module RenderSystem exposing
     , toString
     )
 
+import ParticleEngine.Boundary exposing (Boundary)
+import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 
-type RenderSystem
+
+type System
     = RenderParticles
     | RenderParticleVelocity
     | RenderSprings Float
     | RenderSpringStress
-    | RenderBoundary
+    | ConstrainParticles Boundary
+    | Force Vector2
 
 
-particles : RenderSystem
+particles : System
 particles =
     RenderParticles
 
 
-particleVelocity : RenderSystem
+particleVelocity : System
 particleVelocity =
     RenderParticleVelocity
 
 
-springs : Float -> RenderSystem
+springs : Float -> System
 springs width =
     RenderSprings width
 
 
-springStress : RenderSystem
+springStress : System
 springStress =
     RenderSpringStress
 
 
-boundary : RenderSystem
-boundary =
-    RenderBoundary
+constrain : Boundary -> System
+constrain b =
+    ConstrainParticles b
 
 
-toString : RenderSystem -> String
+force : Vector2 -> System
+force f =
+    Force f
+
+
+toString : System -> String
 toString renderSystem =
     case renderSystem of
         RenderParticles ->
@@ -57,5 +67,8 @@ toString renderSystem =
         RenderSpringStress ->
             "RenderSpringStress"
 
-        RenderBoundary ->
-            "RenderBoundary"
+        ConstrainParticles _ ->
+            "ConstrainParticles"
+
+        Force f ->
+            "Force " ++ Vector2.toString f

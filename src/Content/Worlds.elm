@@ -1,20 +1,21 @@
 module Content.Worlds exposing (ball, bridge, cloth, gravity, rope)
 
 import Content.Shapes exposing (nGon)
+import ParticleEngine.Boundary as Boundary
 import ParticleEngine.Force exposing (Force(..))
 import ParticleEngine.Particle as Particle
 import ParticleEngine.Spring as Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2
 import ParticleEngine.World as World exposing (World)
-import RenderSystem exposing (RenderSystem)
+import System exposing (System)
 
 
-rope : World RenderSystem
+rope : World System
 rope =
     World.empty
-        |> World.addSystem (RenderSystem.springs 10) False
-        |> World.addSystem RenderSystem.springStress True
-        |> World.addSystem RenderSystem.boundary True
+        |> World.addSystem (System.springs 10) False
+        |> World.addSystem System.springStress True
+        |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
         |> World.addParticle (Particle.new (Vector2.new -150 0) 1)
@@ -48,13 +49,13 @@ ringSpring from to =
     World.addAutoSpring from to 100 5
 
 
-ball : World RenderSystem
+ball : World System
 ball =
     World.empty
-        |> World.addSystem RenderSystem.particles True
-        |> World.addSystem (RenderSystem.springs <| Particle.radius) False
-        |> World.addSystem RenderSystem.springStress True
-        |> World.addSystem RenderSystem.boundary True
+        |> World.addSystem System.particles True
+        |> World.addSystem (System.springs <| Particle.radius) False
+        |> World.addSystem System.springStress True
+        |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
         |> World.addForce (Absolute <| Vector2.new 70 300) True
         |> World.addParticles (nGon Vector2.zero 6 100)
         |> World.addParticle (Particle.new (Vector2.new -40 -300) 0)
@@ -97,12 +98,12 @@ ball =
         |> World.addAutoSpring 3 6 100 10
 
 
-bridge : World RenderSystem
+bridge : World System
 bridge =
     World.empty
-        |> World.addSystem RenderSystem.particles True
-        |> World.addSystem (RenderSystem.springs <| Particle.radius) True
-        |> World.addSystem RenderSystem.boundary True
+        |> World.addSystem System.particles True
+        |> World.addSystem (System.springs <| Particle.radius) True
+        |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
         |> World.addParticle (Particle.new (Vector2.new -150 0) 1)
@@ -131,13 +132,14 @@ bridge =
         |> World.addAutoSpring 11 12 1000 100
 
 
-gravity : World RenderSystem
+gravity : World System
 gravity =
     World.empty
-        |> World.addSystem RenderSystem.particleVelocity True
-        |> World.addSystem RenderSystem.particles True
-        |> World.addSystem (RenderSystem.springs <| Particle.radius) True
-        |> World.addSystem RenderSystem.boundary True
+        |> World.addSystem System.particleVelocity True
+        |> World.addSystem System.particles True
+        |> World.addSystem (System.springs <| Particle.radius) True
+        |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
+        |> World.addSystem (System.force <| Vector2.new 0 100) True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -50 -100) 1)
         |> World.addParticle (Particle.new (Vector2.new 50 -100) 5)
@@ -150,12 +152,12 @@ clothSpring =
     Spring.new 50 500 100
 
 
-cloth : World RenderSystem
+cloth : World System
 cloth =
     World.empty
-        |> World.addSystem RenderSystem.springStress False
-        |> World.addSystem (RenderSystem.springs 5) True
-        |> World.addSystem RenderSystem.boundary True
+        |> World.addSystem System.springStress False
+        |> World.addSystem (System.springs 5) True
+        |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
         |> World.addForce (Absolute <| Vector2.new 0 100) True
         |> World.addForce (Realative <| Vector2.new 100 0) False
         -- row 1, anchors

@@ -9,6 +9,7 @@ module ParticleEngine.Vector2 exposing
     , new
     , scale
     , subtract
+    , toString
     , zero
     )
 
@@ -22,6 +23,11 @@ type alias Vector2 =
 new : Float -> Float -> Vector2
 new x y =
     Vector2 x y
+
+
+toString : Vector2 -> String
+toString vector =
+    String.fromFloat vector.x ++ ", " ++ String.fromFloat vector.y
 
 
 {-| Map x component
