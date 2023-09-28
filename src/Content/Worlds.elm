@@ -14,7 +14,7 @@ rope =
     World.empty
         |> World.addSystem (System.springs 10) False
         |> World.addSystem System.springStress True
-        |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
+        -- |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
         |> World.addSystem (System.gravity <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
         |> World.addParticle (Particle.new (Vector2.new -150 0) 1)
@@ -54,7 +54,7 @@ ball =
         |> World.addSystem System.particles True
         |> World.addSystem (System.springs <| Particle.radius) False
         |> World.addSystem System.springStress True
-        |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
+        -- |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
         |> World.addSystem (System.gravity <| Vector2.new 0 100) True
         |> World.addParticles (nGon Vector2.zero 6 100)
         |> World.addParticle (Particle.new (Vector2.new -40 -300) 0)
@@ -102,7 +102,7 @@ bridge =
     World.empty
         |> World.addSystem System.particles True
         |> World.addSystem (System.springs <| Particle.radius) True
-        |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
+        -- |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
         |> World.addSystem (System.gravity <| Vector2.new 0 100) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
         |> World.addParticle (Particle.new (Vector2.new -150 0) 1)
@@ -155,7 +155,7 @@ cloth =
     World.empty
         |> World.addSystem System.springStress False
         |> World.addSystem (System.springs 5) True
-        |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
+        -- |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
         |> World.addSystem (System.gravity <| Vector2.new 0 100) True
         -- row 1, anchors
         |> World.addParticle (Particle.new (Vector2.new -150 -200) 0)
