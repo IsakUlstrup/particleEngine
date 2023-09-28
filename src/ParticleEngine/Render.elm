@@ -13,6 +13,7 @@ import Svg.Attributes
 type alias RenderConfig =
     { width : Float
     , height : Float
+    , cameraZoom : Float
     }
 
 
@@ -38,14 +39,24 @@ viewBox config =
             ++ String.fromFloat config.height
 
 
+cameraTransform : RenderConfig -> Svg.Attribute msg
+cameraTransform config =
+    Svg.Attributes.transform <| "scale(" ++ String.fromFloat config.cameraZoom ++ ")"
+
+
 viewWorld : (World renderSystem -> renderSystem -> Svg msg) -> RenderConfig -> World renderSystem -> Svg msg
 viewWorld runRenderSystem config world =
     Svg.svg
         [ viewBox config
         , Svg.Attributes.id "game-view"
         ]
-        (world.systems
-            |> List.filter Tuple.first
-            |> List.map Tuple.second
-            |> List.map (runRenderSystem world)
-        )
+        [ Svg.g
+            [ Svg.Attributes.class "camera"
+            , cameraTransform config
+            ]
+            (world.systems
+                |> List.filter Tuple.first
+                |> List.map Tuple.second
+                |> List.map (runRenderSystem world)
+            )
+        ]
