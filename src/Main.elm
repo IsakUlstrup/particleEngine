@@ -12,7 +12,7 @@ import Dict exposing (Dict)
 import Html exposing (Html, main_)
 import Html.Attributes
 import Html.Events
-import ParticleEngine.Boundary as Boundary exposing (Boundary)
+import ParticleEngine.Boundary exposing (Boundary)
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Render as Render exposing (RenderConfig)
 import ParticleEngine.Spring exposing (Spring)
@@ -36,7 +36,6 @@ type alias Model =
     , renderConfig : RenderConfig
     , selected : Maybe Int
     , hoverParticle : Maybe Int
-    , particleBoundary : Boundary
     }
 
 
@@ -55,7 +54,6 @@ init _ =
         (RenderConfig 1000 1000)
         Nothing
         Nothing
-        (Boundary.new Vector2.zero 1000 1000)
     , gameResize
     )
 
@@ -135,10 +133,11 @@ update msg model =
                     model.renderConfig
                         |> Render.setWidth element.element.width
                         |> Render.setHeight element.element.height
-                , particleBoundary =
-                    model.particleBoundary
-                        |> Boundary.setWidth element.element.width
-                        |> Boundary.setHeight element.element.height
+
+                -- , particleBoundary =
+                --     model.particleBoundary
+                --         |> Boundary.setWidth element.element.width
+                --         |> Boundary.setHeight element.element.height
               }
             , Cmd.none
             )
