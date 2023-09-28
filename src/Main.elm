@@ -13,7 +13,6 @@ import Html exposing (Html, main_)
 import Html.Attributes
 import Html.Events
 import ParticleEngine.Boundary as Boundary exposing (Boundary)
-import ParticleEngine.Force as Force exposing (Force(..))
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Render as Render exposing (RenderConfig)
 import ParticleEngine.Spring exposing (Spring)
@@ -91,16 +90,13 @@ runSystem system particle =
             particle
 
         Force f ->
-            Particle.applyForce (Realative f) particle
+            Particle.applyForce f particle
 
 
 type Msg
     = Tick Float
-    | ToggleForce Int
-    | SetForce Int Force
     | SetParticlePosition Int Vector2
     | SetParticleMass Int Float
-    | AddForce Force
     | WindowResize
     | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
     | ClickedParticle Int
@@ -121,20 +117,11 @@ update msg model =
             , Cmd.none
             )
 
-        ToggleForce targetIndex ->
-            ( { model | world = World.toggleForce targetIndex model.world }, Cmd.none )
-
-        SetForce targetIndex newForce ->
-            ( { model | world = World.setForce targetIndex newForce model.world }, Cmd.none )
-
         SetParticlePosition id position ->
             ( { model | world = World.setParticlePosition id position model.world }, Cmd.none )
 
         SetParticleMass id mass ->
             ( { model | world = World.setParticleMass id mass model.world }, Cmd.none )
-
-        AddForce force ->
-            ( { model | world = World.addForce force False model.world }, Cmd.none )
 
         WindowResize ->
             ( model, gameResize )
@@ -259,59 +246,6 @@ viewConstraint strokeWidth particles ( ( from, to ), _ ) =
 
         _ ->
             Nothing
-
-
-viewSidebarForces : List ( Bool, Force ) -> ( String, List (Html Msg) )
-viewSidebarForces forces =
-    let
-        viewForce : Int -> ( Bool, Force ) -> Html Msg
-        viewForce index ( enabled, force ) =
-            let
-                forceType : String
-                forceType =
-                    case force of
-                        Realative _ ->
-                            "Relative"
-
-                        Absolute _ ->
-                            "Absolute"
-            in
-            Html.li []
-                [ Html.div [ Html.Attributes.class "labeled-checkbox" ]
-                    [ Html.input
-                        [ Html.Attributes.type_ "checkbox"
-                        , Html.Attributes.checked enabled
-                        , Html.Events.onClick (ToggleForce index)
-                        , Html.Attributes.id <| "force-enabled" ++ String.fromInt index
-                        ]
-                        []
-                    , Html.label [ Html.Attributes.for <| "force-enabled" ++ String.fromInt index ] [ Html.text "Enabled" ]
-                    ]
-                , Html.p [] [ Html.text forceType ]
-                , case force of
-                    Force.Realative f ->
-                        SidebarView.viewVector2Input f (\x -> SetForce index (Force.Realative x))
-
-                    Force.Absolute f ->
-                        SidebarView.viewVector2Input f (\x -> SetForce index (Force.Absolute x))
-                ]
-    in
-    ( "Forces (" ++ (String.fromInt <| List.length forces) ++ ")"
-    , [ Html.ul [] (List.indexedMap viewForce forces)
-      , Html.input
-            [ Html.Attributes.type_ "button"
-            , Html.Attributes.value "New relative force"
-            , Html.Events.onClick (AddForce (Force.Realative Vector2.zero))
-            ]
-            []
-      , Html.input
-            [ Html.Attributes.type_ "button"
-            , Html.Attributes.value "New absolute force"
-            , Html.Events.onClick (AddForce (Force.Absolute Vector2.zero))
-            ]
-            []
-      ]
-    )
 
 
 maybeEq : Int -> Maybe Int -> Bool
@@ -508,8 +442,7 @@ view : Model -> Html Msg
 view model =
     main_ [ Html.Attributes.id "app" ]
         [ SidebarView.viewSidebar
-            [ viewSidebarForces model.world.forces
-            , ( "Particles (" ++ (Dict.toList model.world.particles |> List.length |> String.fromInt) ++ ")"
+            [ ( "Particles (" ++ (Dict.toList model.world.particles |> List.length |> String.fromInt) ++ ")"
               , model.world.particles |> Dict.toList |> List.map (viewSidebarParticle model.selected model.hoverParticle)
               )
             , viewSidebarSprings model.world.springs

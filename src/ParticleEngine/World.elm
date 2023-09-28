@@ -1,29 +1,24 @@
 module ParticleEngine.World exposing
     ( World
     , addAutoSpring
-    , addForce
     , addParticle
     , addParticles
     , addSpring
     , addSystem
-    , applyForces
     , applySpringForces
     , averageFps
     , empty
     , removeSpring
     , setDtMulti
-    , setForce
     , setParticleMass
     , setParticlePosition
     , tick
-    , toggleForce
     , toggleSystem
     , updateParticles
     , updateSpring
     )
 
 import Dict exposing (Dict)
-import ParticleEngine.Force exposing (Force)
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Spring as Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
@@ -33,7 +28,6 @@ type alias World a =
     { particles : Dict Int Particle
     , idCounter : Int
     , springs : Dict ( Int, Int ) Spring
-    , forces : List ( Bool, Force )
     , systems : List ( Bool, a )
     , stepTime : Float
     , timeAccum : Float
@@ -44,7 +38,7 @@ type alias World a =
 
 empty : World a
 empty =
-    World Dict.empty 0 Dict.empty [] [] 0.02 0 1 []
+    World Dict.empty 0 Dict.empty [] 0.02 0 1 []
 
 
 
@@ -197,55 +191,40 @@ applySpringForces world =
 
 
 -- FORCE
-
-
-toggleForce : Int -> World a -> World a
-toggleForce index world =
-    let
-        helper : Int -> ( Bool, Force ) -> ( Bool, Force )
-        helper i force =
-            if i == index then
-                Tuple.mapFirst not force
-
-            else
-                force
-    in
-    { world | forces = List.indexedMap helper world.forces }
-
-
-addForce : Force -> Bool -> World a -> World a
-addForce force enabled world =
-    { world | forces = ( enabled, force ) :: world.forces }
-
-
-setForce : Int -> Force -> World a -> World a
-setForce index force world =
-    let
-        helper : Int -> ( Bool, Force ) -> ( Bool, Force )
-        helper i f =
-            if index == i then
-                Tuple.mapSecond (always force) f
-
-            else
-                f
-    in
-    { world | forces = List.indexedMap helper world.forces }
-
-
-enabledForces : List ( Bool, Force ) -> List Force
-enabledForces forces =
-    forces
-        |> List.filter Tuple.first
-        |> List.map Tuple.second
-
-
-applyForces : World a -> World a
-applyForces world =
-    world
-        |> updateParticles (\_ p -> Particle.applyForces (enabledForces world.forces) p)
-
-
-
+-- toggleForce : Int -> World a -> World a
+-- toggleForce index world =
+--     let
+--         helper : Int -> ( Bool, Force ) -> ( Bool, Force )
+--         helper i force =
+--             if i == index then
+--                 Tuple.mapFirst not force
+--             else
+--                 force
+--     in
+--     { world | forces = List.indexedMap helper world.forces }
+-- addForce : Force -> Bool -> World a -> World a
+-- addForce force enabled world =
+--     { world | forces = ( enabled, force ) :: world.forces }
+-- setForce : Int -> Force -> World a -> World a
+-- setForce index force world =
+--     let
+--         helper : Int -> ( Bool, Force ) -> ( Bool, Force )
+--         helper i f =
+--             if index == i then
+--                 Tuple.mapSecond (always force) f
+--             else
+--                 f
+--     in
+--     { world | forces = List.indexedMap helper world.forces }
+-- enabledForces : List ( Bool, Force ) -> List Force
+-- enabledForces forces =
+--     forces
+--         |> List.filter Tuple.first
+--         |> List.map Tuple.second
+-- applyForces : World a -> World a
+-- applyForces world =
+--     world
+--         |> updateParticles (\_ p -> Particle.applyForces (enabledForces world.forces) p)
 -- Timing
 
 
