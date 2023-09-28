@@ -15,7 +15,7 @@ import Html.Events
 import ParticleEngine.Boundary exposing (Boundary)
 import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Render as Render exposing (RenderConfig)
-import ParticleEngine.Spring exposing (Spring)
+import ParticleEngine.Spring as Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import ParticleEngine.World as World exposing (World)
 import SidebarView
@@ -60,13 +60,22 @@ init _ =
 
 
 -- UPDATE
--- physicsUpdate : Boundary -> World System -> World System
--- physicsUpdate particleBoundary world =
---     world
---         |> World.applyForces
---         |> World.updateParticles (\_ p -> Particle.constrain particleBoundary p)
---         |> World.applySpringForces
---         |> World.updateParticles (\_ p -> Particle.step world.stepTime p)
+
+
+type Msg
+    = Tick Float
+    | SetParticlePosition Int Vector2
+    | SetParticleMass Int Float
+    | WindowResize
+    | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
+    | ClickedParticle Int
+    | HoverParticle Int
+    | ClickedConstraint ( Int, Int )
+    | SetDtMultiplier Float
+    | HoverExitParticle
+    | SetWorld (World System)
+    | SetSpring ( Int, Int ) Spring
+    | ToggleSystem Int
 
 
 runSystem : System -> Particle -> Particle
@@ -94,22 +103,6 @@ runSystem system particle =
             Particle.applyGravity f particle
 
 
-type Msg
-    = Tick Float
-    | SetParticlePosition Int Vector2
-    | SetParticleMass Int Float
-    | WindowResize
-    | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
-    | ClickedParticle Int
-    | HoverParticle Int
-    | ClickedConstraint ( Int, Int )
-    | SetDtMultiplier Float
-    | HoverExitParticle
-    | SetWorld (World System)
-    | SetSpring ( Int, Int ) Spring
-    | ToggleSystem Int
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -133,11 +126,6 @@ update msg model =
                     model.renderConfig
                         |> Render.setWidth element.element.width
                         |> Render.setHeight element.element.height
-
-                -- , particleBoundary =
-                --     model.particleBoundary
-                --         |> Boundary.setWidth element.element.width
-                --         |> Boundary.setHeight element.element.height
               }
             , Cmd.none
             )
@@ -327,9 +315,9 @@ viewSidebarSprings springs =
         viewSpring ( ( from, to ), spring ) =
             Html.div []
                 [ Html.p [] [ Html.text <| String.fromInt from ++ ", " ++ String.fromInt to ]
-                , SidebarView.viewLabeledInput "number" (String.fromFloat spring.length) "Length" (\i -> SetSpring ( from, to ) { spring | length = String.toFloat i |> Maybe.withDefault spring.length })
-                , SidebarView.viewLabeledInput "number" (String.fromFloat spring.rate) "Rate" (\i -> SetSpring ( from, to ) { spring | rate = String.toFloat i |> Maybe.withDefault spring.rate })
-                , SidebarView.viewLabeledInput "number" (String.fromFloat spring.damping) "Damping" (\i -> SetSpring ( from, to ) { spring | damping = String.toFloat i |> Maybe.withDefault spring.damping })
+                , SidebarView.viewLabeledInput "number" (String.fromFloat spring.length) "Length" (\i -> SetSpring ( from, to ) (Spring.setLength (Maybe.withDefault spring.length <| String.toFloat i) spring))
+                , SidebarView.viewLabeledInput "number" (String.fromFloat spring.rate) "Rate" (\i -> SetSpring ( from, to ) (Spring.setRate (Maybe.withDefault spring.rate <| String.toFloat i) spring))
+                , SidebarView.viewLabeledInput "number" (String.fromFloat spring.damping) "Damping" (\i -> SetSpring ( from, to ) (Spring.setDamping (Maybe.withDefault spring.damping <| String.toFloat i) spring))
                 ]
     in
     ( "Springs (" ++ (String.fromInt <| List.length springList) ++ ")", springList |> List.map viewSpring )
