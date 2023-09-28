@@ -1,7 +1,6 @@
 module ParticleEngine.Particle exposing
     ( Particle
     , applyForce
-    , applyForces
     , applyGravity
     , applySpringForce
     , constrain
@@ -56,11 +55,6 @@ applyGravity force particle =
 
     else
         particle
-
-
-applyForces : List Vector2 -> Particle -> Particle
-applyForces forces particle =
-    List.foldl applyForce particle forces
 
 
 {-| Derive velocity vector based on old position

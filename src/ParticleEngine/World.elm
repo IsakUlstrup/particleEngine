@@ -5,7 +5,6 @@ module ParticleEngine.World exposing
     , addParticles
     , addSpring
     , addSystem
-    , applySpringForces
     , averageFps
     , empty
     , removeSpring
@@ -14,7 +13,6 @@ module ParticleEngine.World exposing
     , setParticlePosition
     , tick
     , toggleSystem
-    , updateParticles
     , updateSpring
     )
 
@@ -191,41 +189,6 @@ applySpringForces world =
 
 
 
--- FORCE
--- toggleForce : Int -> World a -> World a
--- toggleForce index world =
---     let
---         helper : Int -> ( Bool, Force ) -> ( Bool, Force )
---         helper i force =
---             if i == index then
---                 Tuple.mapFirst not force
---             else
---                 force
---     in
---     { world | forces = List.indexedMap helper world.forces }
--- addForce : Force -> Bool -> World a -> World a
--- addForce force enabled world =
---     { world | forces = ( enabled, force ) :: world.forces }
--- setForce : Int -> Force -> World a -> World a
--- setForce index force world =
---     let
---         helper : Int -> ( Bool, Force ) -> ( Bool, Force )
---         helper i f =
---             if index == i then
---                 Tuple.mapSecond (always force) f
---             else
---                 f
---     in
---     { world | forces = List.indexedMap helper world.forces }
--- enabledForces : List ( Bool, Force ) -> List Force
--- enabledForces forces =
---     forces
---         |> List.filter Tuple.first
---         |> List.map Tuple.second
--- applyForces : World a -> World a
--- applyForces world =
---     world
---         |> updateParticles (\_ p -> Particle.applyForces (enabledForces world.forces) p)
 -- Timing
 
 

@@ -364,6 +364,7 @@ viewSidebarSystem index ( enabled, system ) =
 viewParticleVelocity : ( Int, Particle ) -> Svg msg
 viewParticleVelocity ( _, particle ) =
     let
+        scaledVelocity : Vector2
         scaledVelocity =
             particle
                 |> Particle.velocity
