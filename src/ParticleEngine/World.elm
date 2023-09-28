@@ -124,8 +124,8 @@ runSystems f world =
             updateParticles (\_ p -> f s p) w
     in
     List.foldl runSystem world (world.systems |> List.filter Tuple.first |> List.map Tuple.second)
-        |> updateParticles (\_ p -> Particle.step world.stepTime p)
         |> applySpringForces
+        |> updateParticles (\_ p -> Particle.step world.stepTime p)
 
 
 
