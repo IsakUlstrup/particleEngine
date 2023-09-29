@@ -259,18 +259,16 @@ maybeEq n mn =
 viewSidebarParticle : Maybe Int -> Maybe Int -> ( Int, Particle ) -> Html Msg
 viewSidebarParticle selected hovered ( id, p ) =
     Html.div
-        [ Html.Events.onClick <| ClickedParticle id
-        , Html.Events.onMouseOver <| HoverParticle id
-        , Html.Events.onMouseOut <| HoverExitParticle
+        [ Html.Events.onClick (ClickedParticle id)
+        , Html.Events.onMouseOver (HoverParticle id)
+        , Html.Events.onMouseOut HoverExitParticle
         , Html.Attributes.classList
             [ ( "selected", maybeEq id selected )
             , ( "hover", maybeEq id hovered )
             , ( "particle", True )
             ]
         ]
-        [ Html.text <|
-            "id: "
-                ++ String.fromInt id
+        [ Html.text ("id: " ++ String.fromInt id)
         , SidebarView.viewVector2Input p.position (SetParticlePosition id)
         , SidebarView.viewLabeledNumberInput (String.fromFloat p.mass) "Mass" (SetParticleMass id)
         ]
@@ -288,8 +286,7 @@ viewSidebarStats model =
                 |> Maybe.withDefault "-"
     in
     ( "Stats"
-    , [ Html.p [] [ Html.text <| "Average FPS: " ++ fpsString model.world ]
-      ]
+    , [ Html.p [] [ Html.text ("Average FPS: " ++ fpsString model.world) ] ]
     )
 
 
@@ -300,9 +297,9 @@ viewSidebarTimeControls dtMulti =
         timeButton n =
             Html.input
                 [ Html.Attributes.type_ "button"
-                , Html.Attributes.value <| String.fromFloat n ++ "x"
+                , Html.Attributes.value (String.fromFloat n ++ "x")
                 , Html.Attributes.classList [ ( "selected", n == dtMulti ) ]
-                , Html.Events.onClick <| SetDtMultiplier n
+                , Html.Events.onClick (SetDtMultiplier n)
                 ]
                 []
     in
@@ -328,7 +325,7 @@ viewSidebarSprings springs =
                 , SidebarView.viewLabeledNumberInput (String.fromFloat spring.damping) "Damping" (\i -> SetSpring ( from, to ) (Spring.setDamping i spring))
                 ]
     in
-    ( "Springs (" ++ (String.fromInt <| List.length springList) ++ ")", springList |> List.map viewSpring )
+    ( "Springs (" ++ (springList |> List.length |> String.fromInt) ++ ")", List.map viewSpring springList )
 
 
 viewSidebarWorld : ( String, World System ) -> Html Msg
@@ -336,7 +333,7 @@ viewSidebarWorld ( name, world ) =
     Html.input
         [ Html.Attributes.type_ "button"
         , Html.Attributes.value name
-        , Html.Events.onClick <| SetWorld world
+        , Html.Events.onClick (SetWorld world)
         ]
         []
 
