@@ -80,29 +80,29 @@ type Msg
     | SetCameraPosition Vector2
 
 
-runSystem : System -> Particle -> Particle
-runSystem system particle =
+runSystem : System -> World System -> World System
+runSystem system world =
     case system of
         ConstrainParticles b ->
-            Particle.constrain b particle
+            World.updateParticles (Particle.constrain b) world
 
         RenderParticles ->
-            particle
+            world
 
         RenderParticleVelocity ->
-            particle
+            world
 
         RenderSprings _ ->
-            particle
+            world
 
         RenderSpringStress ->
-            particle
+            world
 
         Force f ->
-            Particle.applyForce f particle
+            World.updateParticles (Particle.applyForce f) world
 
         Gravity f ->
-            Particle.applyGravity f particle
+            World.updateParticles (Particle.applyGravity f) world
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

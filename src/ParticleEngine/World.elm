@@ -13,6 +13,7 @@ module ParticleEngine.World exposing
     , setParticlePosition
     , tick
     , toggleSystem
+    , updateParticles
     , updateSpring
     )
 
@@ -56,9 +57,9 @@ addParticles particles world =
     List.foldl addParticle world particles
 
 
-updateParticles : (Int -> Particle -> Particle) -> World a -> World a
+updateParticles : (Particle -> Particle) -> World a -> World a
 updateParticles f world =
-    { world | particles = Dict.map f world.particles }
+    { world | particles = Dict.map (\_ p -> f p) world.particles }
 
 
 particleDistance : Int -> Int -> Dict Int Particle -> Maybe Float
@@ -114,16 +115,11 @@ toggleSystem index world =
     { world | systems = List.indexedMap toggleHelper world.systems }
 
 
-runSystems : (a -> Particle -> Particle) -> World a -> World a
+runSystems : (a -> World a -> World a) -> World a -> World a
 runSystems f world =
-    let
-        runSystem : a -> World a -> World a
-        runSystem s w =
-            updateParticles (\_ p -> f s p) w
-    in
-    List.foldl runSystem world (world.systems |> List.filter Tuple.first |> List.map Tuple.second)
+    List.foldl f world (world.systems |> List.filter Tuple.first |> List.map Tuple.second)
         |> applySpringForces
-        |> updateParticles (\_ p -> Particle.step world.stepTime p)
+        |> updateParticles (Particle.step world.stepTime)
 
 
 
@@ -235,6 +231,6 @@ averageFps world =
     1000 / averageDelta world.dtHistory
 
 
-tick : Float -> (a -> Particle -> Particle) -> World a -> World a
+tick : Float -> (a -> World a -> World a) -> World a -> World a
 tick dt f world =
     fixedUpdate (runSystems f) dt world
