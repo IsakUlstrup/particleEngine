@@ -1,7 +1,7 @@
 module SidebarView exposing (buttonGroup, viewLabeledInput, viewSidebar, viewVector2Input)
 
 import Html exposing (Html, details, div, input, label, strong, summary, text)
-import Html.Attributes exposing (class, for, id, type_, value)
+import Html.Attributes exposing (class, for, id, step, type_, value)
 import Html.Events exposing (onInput)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 
@@ -23,6 +23,7 @@ viewLabeledInput inputType inputValue labelValue inputMsg =
             , type_ inputType
             , onInput inputMsg
             , value inputValue
+            , step "0.1"
             ]
             []
         ]

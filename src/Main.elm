@@ -76,6 +76,8 @@ type Msg
     | SetWorld (World System)
     | SetSpring ( Int, Int ) Spring
     | ToggleSystem Int
+    | SetCameraZoom Float
+    | SetCameraPosition Vector2
 
 
 runSystem : System -> Particle -> Particle
@@ -173,6 +175,12 @@ update msg model =
 
         ToggleSystem index ->
             ( { model | world = World.toggleSystem index model.world }, Cmd.none )
+
+        SetCameraZoom zoom ->
+            ( { model | renderConfig = Render.setZoom zoom model.renderConfig }, Cmd.none )
+
+        SetCameraPosition position ->
+            ( { model | renderConfig = Render.setPosition position model.renderConfig }, Cmd.none )
 
 
 
@@ -443,6 +451,7 @@ view model =
             , ( "Systems (" ++ (model.world.systems |> List.length |> String.fromInt) ++ ")"
               , model.world.systems |> List.indexedMap viewSidebarSystem
               )
+            , ( "Camera", viewSidebarCamera model.renderConfig )
             , viewSidebarStats model
             , viewSidebarTimeControls model.world.dtMultiplier
             , ( "Worlds"
@@ -451,6 +460,13 @@ view model =
             ]
         , Render.viewWorld (runRenderSystem model.selected model.hoverParticle) model.renderConfig model.world
         ]
+
+
+viewSidebarCamera : RenderConfig -> List (Html Msg)
+viewSidebarCamera config =
+    [ SidebarView.viewLabeledInput "number" (String.fromFloat config.cameraZoom) "Zoom" (String.toFloat >> Maybe.withDefault config.cameraZoom >> SetCameraZoom)
+    , SidebarView.viewVector2Input config.cameraPosition SetCameraPosition
+    ]
 
 
 
