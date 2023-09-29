@@ -1,4 +1,4 @@
-module SidebarView exposing (buttonGroup, viewLabeledInput, viewSidebar, viewVector2Input)
+module SidebarView exposing (buttonGroup, viewLabeledInput, viewLabeledNumberInput, viewSidebar, viewVector2Input)
 
 import Html exposing (Html, details, div, input, label, strong, summary, text)
 import Html.Attributes exposing (class, for, id, step, type_, value)
@@ -22,6 +22,20 @@ viewLabeledInput inputType inputValue labelValue inputMsg =
             [ id labelValue
             , type_ inputType
             , onInput inputMsg
+            , value inputValue
+            ]
+            []
+        ]
+
+
+viewLabeledNumberInput : String -> String -> (Float -> msg) -> Html msg
+viewLabeledNumberInput inputValue labelValue inputMsg =
+    div [ class "labeled-input" ]
+        [ label [ for labelValue ] [ text labelValue ]
+        , input
+            [ id labelValue
+            , type_ "number"
+            , onInput (String.toFloat >> Maybe.withDefault 0 >> inputMsg)
             , value inputValue
             , step "0.1"
             ]

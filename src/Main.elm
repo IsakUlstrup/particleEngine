@@ -272,7 +272,7 @@ viewSidebarParticle selected hovered ( id, p ) =
             "id: "
                 ++ String.fromInt id
         , SidebarView.viewVector2Input p.position (SetParticlePosition id)
-        , SidebarView.viewLabeledInput "number" (String.fromFloat p.mass) "Mass" (\i -> SetParticleMass id (i |> String.toFloat |> Maybe.withDefault 0))
+        , SidebarView.viewLabeledNumberInput (String.fromFloat p.mass) "Mass" (SetParticleMass id)
         ]
 
 
@@ -323,9 +323,9 @@ viewSidebarSprings springs =
         viewSpring ( ( from, to ), spring ) =
             Html.div []
                 [ Html.p [] [ Html.text <| String.fromInt from ++ ", " ++ String.fromInt to ]
-                , SidebarView.viewLabeledInput "number" (String.fromFloat spring.length) "Length" (\i -> SetSpring ( from, to ) (Spring.setLength (Maybe.withDefault spring.length <| String.toFloat i) spring))
-                , SidebarView.viewLabeledInput "number" (String.fromFloat spring.rate) "Rate" (\i -> SetSpring ( from, to ) (Spring.setRate (Maybe.withDefault spring.rate <| String.toFloat i) spring))
-                , SidebarView.viewLabeledInput "number" (String.fromFloat spring.damping) "Damping" (\i -> SetSpring ( from, to ) (Spring.setDamping (Maybe.withDefault spring.damping <| String.toFloat i) spring))
+                , SidebarView.viewLabeledNumberInput (String.fromFloat spring.length) "Length" (\i -> SetSpring ( from, to ) (Spring.setLength i spring))
+                , SidebarView.viewLabeledNumberInput (String.fromFloat spring.rate) "Rate" (\i -> SetSpring ( from, to ) (Spring.setRate i spring))
+                , SidebarView.viewLabeledNumberInput (String.fromFloat spring.damping) "Damping" (\i -> SetSpring ( from, to ) (Spring.setDamping i spring))
                 ]
     in
     ( "Springs (" ++ (String.fromInt <| List.length springList) ++ ")", springList |> List.map viewSpring )
@@ -464,7 +464,7 @@ view model =
 
 viewSidebarCamera : RenderConfig -> List (Html Msg)
 viewSidebarCamera config =
-    [ SidebarView.viewLabeledInput "number" (String.fromFloat config.cameraZoom) "Zoom" (String.toFloat >> Maybe.withDefault config.cameraZoom >> SetCameraZoom)
+    [ SidebarView.viewLabeledNumberInput (String.fromFloat config.cameraZoom) "Zoom" SetCameraZoom
     , SidebarView.viewVector2Input config.cameraPosition SetCameraPosition
     ]
 
