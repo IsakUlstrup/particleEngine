@@ -1,10 +1,13 @@
 module ParticleEngine.Render exposing
     ( RenderConfig
     , setHeight
+    , setPosition
     , setWidth
+    , setZoom
     , viewWorld
     )
 
+import ParticleEngine.Vector2 exposing (Vector2)
 import ParticleEngine.World exposing (World)
 import Svg exposing (Svg)
 import Svg.Attributes
@@ -14,6 +17,7 @@ type alias RenderConfig =
     { width : Float
     , height : Float
     , cameraZoom : Float
+    , cameraPosition : Vector2
     }
 
 
@@ -25,6 +29,16 @@ setWidth width config =
 setHeight : Float -> RenderConfig -> RenderConfig
 setHeight height config =
     { config | height = height }
+
+
+setZoom : Float -> RenderConfig -> RenderConfig
+setZoom zoom config =
+    { config | cameraZoom = zoom }
+
+
+setPosition : Vector2 -> RenderConfig -> RenderConfig
+setPosition position config =
+    { config | cameraPosition = position }
 
 
 viewBox : RenderConfig -> Svg.Attribute msg
@@ -41,7 +55,14 @@ viewBox config =
 
 cameraTransform : RenderConfig -> Svg.Attribute msg
 cameraTransform config =
-    Svg.Attributes.transform <| "scale(" ++ String.fromFloat config.cameraZoom ++ ")"
+    Svg.Attributes.transform <|
+        "scale("
+            ++ String.fromFloat config.cameraZoom
+            ++ ") translate("
+            ++ String.fromFloat -config.cameraPosition.x
+            ++ ", "
+            ++ String.fromFloat -config.cameraPosition.y
+            ++ ")"
 
 
 viewWorld : (World renderSystem -> renderSystem -> Svg msg) -> RenderConfig -> World renderSystem -> Svg msg

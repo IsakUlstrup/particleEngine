@@ -51,7 +51,7 @@ init _ =
             , ( "Cloth", Content.Worlds.cloth )
             ]
         )
-        (RenderConfig 1000 1000 0.7)
+        (RenderConfig 1000 1000 0.7 Vector2.zero)
         Nothing
         Nothing
     , gameResize
