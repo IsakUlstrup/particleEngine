@@ -279,9 +279,10 @@ viewParticle selected hovered ( id, particle ) =
     Svg.circle
         [ transform particle.position.x particle.position.y
         , Svg.Attributes.r <| String.fromInt (round Particle.radius)
-        , Svg.Events.onClick <| ClickedParticle id
-        , Svg.Events.onMouseOver <| HoverParticle id
-        , Svg.Events.onMouseOut <| HoverExitParticle
+
+        -- , Svg.Events.onClick <| ClickedParticle id
+        -- , Svg.Events.onMouseOver <| HoverParticle id
+        -- , Svg.Events.onMouseOut <| HoverExitParticle
         , svgClassList
             [ ( "selected", maybeEq id selected )
             , ( "hover", maybeEq id hovered )
@@ -309,7 +310,8 @@ viewConstraint strokeWidth particles ( ( from, to ), _ ) =
                     , Svg.Attributes.stroke "beige"
                     , Svg.Attributes.strokeWidth <| String.fromFloat strokeWidth
                     , Svg.Attributes.strokeLinecap "round"
-                    , Svg.Events.onClick <| ClickedConstraint ( from, to )
+
+                    -- , Svg.Events.onClick <| ClickedConstraint ( from, to )
                     , Svg.Attributes.class "constraint"
                     ]
                     []
