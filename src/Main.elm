@@ -105,7 +105,22 @@ runSystem system world =
             World.updateParticles (Particle.applyGravity f) world
 
         BreakSprings ->
-            world
+            let
+                deltaLength : Int -> Int -> Spring -> Maybe Float
+                deltaLength from to spring =
+                    world
+                        |> World.particleDistance from to
+                        |> Maybe.map (\d -> abs (d - spring.length))
+
+                fiddlesticks ( from, to ) spring =
+                    case deltaLength from to spring of
+                        Just length ->
+                            length <= spring.length * 1.02
+
+                        Nothing ->
+                            False
+            in
+            World.filterSprings fiddlesticks world
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

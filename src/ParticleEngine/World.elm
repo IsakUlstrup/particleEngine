@@ -7,6 +7,8 @@ module ParticleEngine.World exposing
     , addSystem
     , averageFps
     , empty
+    , filterSprings
+    , particleDistance
     , removeSpring
     , setDtMulti
     , setParticleMass
@@ -62,16 +64,6 @@ updateParticles f world =
     { world | particles = Dict.map (\_ p -> f p) world.particles }
 
 
-particleDistance : Int -> Int -> Dict Int Particle -> Maybe Float
-particleDistance one two particles =
-    case ( Dict.get one particles, Dict.get two particles ) of
-        ( Just p1, Just p2 ) ->
-            Just <| Vector2.distance p1.position p2.position
-
-        _ ->
-            Nothing
-
-
 setParticlePosition : Int -> Vector2 -> World a -> World a
 setParticlePosition id position world =
     let
@@ -90,6 +82,18 @@ setParticleMass id mass world =
             { p | mass = mass }
     in
     { world | particles = Dict.update id (Maybe.map updateMass) world.particles }
+
+
+{-| Get distance between two particles if they exist
+-}
+particleDistance : Int -> Int -> World a -> Maybe Float
+particleDistance from to world =
+    case ( Dict.get from world.particles, Dict.get to world.particles ) of
+        ( Just f, Just t ) ->
+            Just (Vector2.distance f.position t.position)
+
+        _ ->
+            Nothing
 
 
 
@@ -130,7 +134,7 @@ runSystems f world =
 -}
 addAutoSpring : Int -> Int -> Float -> Float -> World a -> World a
 addAutoSpring from to springRate damping world =
-    case particleDistance from to world.particles of
+    case particleDistance from to world of
         Just dist ->
             { world | springs = world.springs |> Dict.insert ( from, to ) (Spring.new dist springRate damping) }
 
@@ -140,7 +144,7 @@ addAutoSpring from to springRate damping world =
 
 addSpring : Int -> Int -> Spring -> World a -> World a
 addSpring from to spring world =
-    case particleDistance from to world.particles of
+    case particleDistance from to world of
         Just _ ->
             { world | springs = world.springs |> Dict.insert ( from, to ) spring }
 
@@ -182,6 +186,11 @@ constrainPair ( ( from, to ), spring ) particles =
 applySpringForces : World a -> World a
 applySpringForces world =
     { world | particles = List.foldl constrainPair world.particles (Dict.toList world.springs) }
+
+
+filterSprings : (( Int, Int ) -> Spring -> Bool) -> World a -> World a
+filterSprings predicate world =
+    { world | springs = world.springs |> Dict.filter predicate }
 
 
 

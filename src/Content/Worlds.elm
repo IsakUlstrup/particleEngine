@@ -147,7 +147,7 @@ gravity =
 
 clothSpring : Spring
 clothSpring =
-    Spring.new 50 200 100
+    Spring.new 50 100 50
 
 
 cloth : World System
@@ -217,9 +217,9 @@ cloth =
         |> World.addParticle (Particle.new (Vector2.new -100 -50) 1)
         |> World.addParticle (Particle.new (Vector2.new -50 -50) 1)
         |> World.addParticle (Particle.new (Vector2.new 0 -50) 1)
-        |> World.addParticle (Particle.new (Vector2.new 50 -50) 1)
-        |> World.addParticle (Particle.new (Vector2.new 100 -50) 1)
-        |> World.addParticle (Particle.new (Vector2.new 150 -50) 1)
+        |> World.addParticle (Particle.new (Vector2.new 50 -50) 3)
+        |> World.addParticle (Particle.new (Vector2.new 100 -50) 5)
+        |> World.addParticle (Particle.new (Vector2.new 150 -50) 15)
         -- row 3 springs
         |> World.addSpring 14 21 clothSpring
         |> World.addSpring 15 22 clothSpring
