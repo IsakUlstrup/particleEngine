@@ -484,35 +484,35 @@ viewSpringStress particles ( ( from, to ), spring ) =
             Nothing
 
 
-runRenderSystem : Maybe Int -> Maybe Int -> World System -> System -> Svg Msg
+runRenderSystem : Maybe Int -> Maybe Int -> World System -> System -> Maybe (Svg Msg)
 runRenderSystem selected hovered world system =
     case system of
         RenderParticles ->
-            Svg.Keyed.node "g" [] (Dict.toList world.particles |> List.map (viewKeyedParticle selected hovered))
+            Svg.Keyed.node "g" [] (Dict.toList world.particles |> List.map (viewKeyedParticle selected hovered)) |> Just
 
         RenderParticleVelocity ->
-            Svg.g [] (Dict.toList world.particles |> List.map viewParticleVelocity)
+            Svg.g [] (Dict.toList world.particles |> List.map viewParticleVelocity) |> Just
 
         RenderSprings width ->
-            Svg.g [] (Dict.toList world.springs |> List.filterMap (viewConstraint width world.particles))
+            Svg.g [] (Dict.toList world.springs |> List.filterMap (viewConstraint width world.particles)) |> Just
 
         RenderSpringStress ->
-            Svg.g [] (Dict.toList world.springs |> List.filterMap (viewSpringStress world.particles))
+            Svg.g [] (Dict.toList world.springs |> List.filterMap (viewSpringStress world.particles)) |> Just
 
         ConstrainParticles b ->
-            viewParticleBounds b
+            viewParticleBounds b |> Just
 
         Force _ ->
-            Svg.g [] []
+            Nothing
 
         Gravity _ ->
-            Svg.g [] []
+            Nothing
 
         BreakSprings ->
-            Svg.g [] []
+            Nothing
 
         SpawnParticle _ _ ->
-            Svg.g [] []
+            Nothing
 
 
 view : Model -> Html Msg

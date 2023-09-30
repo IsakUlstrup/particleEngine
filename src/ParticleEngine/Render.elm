@@ -65,8 +65,8 @@ cameraTransform config =
             ++ ")"
 
 
-viewWorld : (World renderSystem -> renderSystem -> Svg msg) -> RenderConfig -> World renderSystem -> Svg msg
-viewWorld runRenderSystem config world =
+viewWorld : (World a -> a -> Maybe (Svg msg)) -> RenderConfig -> World a -> Svg msg
+viewWorld runSystem config world =
     Svg.svg
         [ viewBox config
         , Svg.Attributes.id "game-view"
@@ -78,6 +78,6 @@ viewWorld runRenderSystem config world =
             (world.systems
                 |> List.filter Tuple.first
                 |> List.map Tuple.second
-                |> List.map (runRenderSystem world)
+                |> List.filterMap (runSystem world)
             )
         ]
