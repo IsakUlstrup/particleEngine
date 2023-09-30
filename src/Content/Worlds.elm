@@ -4,9 +4,14 @@ import Content.Shapes exposing (nGon)
 import ParticleEngine.Boundary as Boundary
 import ParticleEngine.Particle as Particle
 import ParticleEngine.Spring as Spring exposing (Spring)
-import ParticleEngine.Vector2 as Vector2
+import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 import ParticleEngine.World as World exposing (World)
 import System exposing (System)
+
+
+gravityForce : Vector2
+gravityForce =
+    Vector2.new 0 1000
 
 
 rope : World System
@@ -15,7 +20,7 @@ rope =
         |> World.addSystem (System.springs 10) False
         |> World.addSystem System.springStress True
         -- |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
-        |> World.addSystem (System.gravity <| Vector2.new 0 100) True
+        |> World.addSystem (System.gravity gravityForce) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
         |> World.addParticle (Particle.new (Vector2.new -150 0) 1)
         |> World.addParticle (Particle.new (Vector2.new -120 0) 1)
@@ -54,8 +59,7 @@ ball =
         |> World.addSystem System.particles True
         |> World.addSystem (System.springs <| Particle.radius) False
         |> World.addSystem System.springStress True
-        -- |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
-        |> World.addSystem (System.gravity <| Vector2.new 0 100) True
+        |> World.addSystem (System.gravity gravityForce) True
         |> World.addParticles (nGon Vector2.zero 6 100)
         |> World.addParticle (Particle.new (Vector2.new -40 -300) 0)
         -- 0
@@ -102,8 +106,7 @@ bridge =
     World.empty
         |> World.addSystem System.particles True
         |> World.addSystem (System.springs <| Particle.radius) True
-        -- |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
-        |> World.addSystem (System.gravity <| Vector2.new 0 100) True
+        |> World.addSystem (System.gravity gravityForce) True
         |> World.addParticle (Particle.new (Vector2.new -180 0) 0)
         |> World.addParticle (Particle.new (Vector2.new -150 0) 1)
         |> World.addParticle (Particle.new (Vector2.new -120 0) 1)
@@ -138,7 +141,7 @@ gravity =
         |> World.addSystem System.particles True
         |> World.addSystem (System.springs <| Particle.radius) True
         |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
-        |> World.addSystem (System.gravity <| Vector2.new 0 100) True
+        |> World.addSystem (System.gravity gravityForce) True
         |> World.addParticle (Particle.new (Vector2.new -50 -100) 1)
         |> World.addParticle (Particle.new (Vector2.new 50 -100) 5)
         |> World.addParticle (Particle.new (Vector2.new 150 -50) 5)
@@ -147,7 +150,7 @@ gravity =
 
 clothSpring : Spring
 clothSpring =
-    Spring.new 50 100 50
+    Spring.new 50 500 100
 
 
 cloth : World System
@@ -155,9 +158,8 @@ cloth =
     World.empty
         |> World.addSystem System.springStress True
         |> World.addSystem (System.springs 5) False
-        -- |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
-        |> World.addSystem System.breakSprings True
-        |> World.addSystem (System.gravity <| Vector2.new 0 100) True
+        |> World.addSystem System.breakSprings False
+        |> World.addSystem (System.gravity gravityForce) True
         -- row 1, anchors
         |> World.addParticle (Particle.new (Vector2.new -150 -200) 0)
         |> World.addParticle (Particle.new (Vector2.new -100 -200) 0)
@@ -217,9 +219,9 @@ cloth =
         |> World.addParticle (Particle.new (Vector2.new -100 -50) 1)
         |> World.addParticle (Particle.new (Vector2.new -50 -50) 1)
         |> World.addParticle (Particle.new (Vector2.new 0 -50) 1)
-        |> World.addParticle (Particle.new (Vector2.new 50 -50) 3)
-        |> World.addParticle (Particle.new (Vector2.new 100 -50) 5)
-        |> World.addParticle (Particle.new (Vector2.new 150 -50) 15)
+        |> World.addParticle (Particle.new (Vector2.new 50 -50) 1)
+        |> World.addParticle (Particle.new (Vector2.new 100 -50) 3)
+        |> World.addParticle (Particle.new (Vector2.new 150 -50) 6)
         -- row 3 springs
         |> World.addSpring 14 21 clothSpring
         |> World.addSpring 15 22 clothSpring
