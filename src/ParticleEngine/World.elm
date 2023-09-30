@@ -8,6 +8,7 @@ module ParticleEngine.World exposing
     , averageFps
     , empty
     , filterSprings
+    , mapSystems
     , particleDistance
     , removeSpring
     , setDtMulti
@@ -124,6 +125,11 @@ runSystems f world =
     List.foldl f world (world.systems |> List.filter Tuple.first |> List.map Tuple.second)
         |> applySpringForces
         |> updateParticles (Particle.step world.stepTime)
+
+
+mapSystems : (a -> a) -> World a -> World a
+mapSystems f world =
+    { world | systems = List.map (Tuple.mapSecond f) world.systems }
 
 
 

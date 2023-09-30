@@ -6,12 +6,14 @@ module System exposing
     , gravity
     , particleVelocity
     , particles
+    , spawnParticle
     , springStress
     , springs
     , toString
     )
 
 import ParticleEngine.Boundary exposing (Boundary)
+import ParticleEngine.Particle exposing (Particle)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 
 
@@ -24,6 +26,7 @@ type System
     | Force Vector2
     | Gravity Vector2
     | BreakSprings
+    | SpawnParticle ( Float, Float ) Particle
 
 
 particles : System
@@ -66,6 +69,11 @@ breakSprings =
     BreakSprings
 
 
+spawnParticle : Float -> Particle -> System
+spawnParticle cooldown particle =
+    SpawnParticle ( cooldown, cooldown ) particle
+
+
 toString : System -> String
 toString renderSystem =
     case renderSystem of
@@ -92,3 +100,6 @@ toString renderSystem =
 
         BreakSprings ->
             "BreakSprings"
+
+        SpawnParticle ( cd, maxCd ) _ ->
+            "SpawnParticle " ++ String.fromFloat cd ++ "/" ++ String.fromFloat maxCd

@@ -49,6 +49,7 @@ init _ =
             , ( "Ball", Content.Worlds.ball )
             , ( "Gravity", Content.Worlds.gravity )
             , ( "Cloth", Content.Worlds.cloth )
+            , ( "Spawn", Content.Worlds.spawn )
             ]
         )
         (RenderConfig 1000 1000 0.7 Vector2.zero)
@@ -122,12 +123,59 @@ runSystem system world =
             in
             World.filterSprings fiddlesticks world
 
+        SpawnParticle ( cd, _ ) particle ->
+            if cd <= 0 then
+                World.addParticle particle world
+
+            else
+                world
+
+
+updateSystem : Float -> System -> System
+updateSystem dt system =
+    case system of
+        ConstrainParticles _ ->
+            system
+
+        RenderParticles ->
+            system
+
+        RenderParticleVelocity ->
+            system
+
+        RenderSprings _ ->
+            system
+
+        RenderSpringStress ->
+            system
+
+        Force _ ->
+            system
+
+        Gravity _ ->
+            system
+
+        BreakSprings ->
+            system
+
+        SpawnParticle ( cd, maxCd ) particle ->
+            if cd <= 0 then
+                SpawnParticle ( maxCd, maxCd ) particle
+
+            else
+                SpawnParticle ( max 0 (cd - dt), maxCd ) particle
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick dt ->
-            ( { model | world = World.tick dt runSystem model.world }
+            ( { model
+                | world =
+                    model.world
+                        |> World.mapSystems (updateSystem dt)
+                        |> World.tick dt runSystem
+              }
             , Cmd.none
             )
 
@@ -455,6 +503,9 @@ runRenderSystem selected hovered world system =
             Svg.g [] []
 
         BreakSprings ->
+            Svg.g [] []
+
+        SpawnParticle _ _ ->
             Svg.g [] []
 
 

@@ -1,4 +1,4 @@
-module Content.Worlds exposing (ball, bridge, cloth, gravity, rope)
+module Content.Worlds exposing (ball, bridge, cloth, gravity, rope, spawn)
 
 import Content.Shapes exposing (nGon)
 import ParticleEngine.Boundary as Boundary
@@ -237,3 +237,12 @@ cloth =
         |> World.addSpring 25 26 clothSpring
         |> World.addSpring 26 27 clothSpring
         |> World.addSpring 27 28 clothSpring
+
+
+spawn : World System
+spawn =
+    World.empty
+        |> World.addSystem (System.spawnParticle 200 (Particle.new (Vector2.new -470 -470) 1 |> Particle.applyForce (Vector2.new 6000 0))) True
+        |> World.addSystem System.particles True
+        |> World.addSystem (System.gravity gravityForce) True
+        |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 1000 1000) True
