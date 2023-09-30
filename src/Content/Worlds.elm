@@ -147,15 +147,16 @@ gravity =
 
 clothSpring : Spring
 clothSpring =
-    Spring.new 50 500 100
+    Spring.new 50 200 100
 
 
 cloth : World System
 cloth =
     World.empty
-        |> World.addSystem System.springStress False
-        |> World.addSystem (System.springs 5) True
+        |> World.addSystem System.springStress True
+        |> World.addSystem (System.springs 5) False
         -- |> World.addSystem (System.constrain <| Boundary.new Vector2.zero 500 500) True
+        |> World.addSystem System.breakSprings True
         |> World.addSystem (System.gravity <| Vector2.new 0 100) True
         -- row 1, anchors
         |> World.addParticle (Particle.new (Vector2.new -150 -200) 0)

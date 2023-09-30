@@ -104,6 +104,9 @@ runSystem system world =
         Gravity f ->
             World.updateParticles (Particle.applyGravity f) world
 
+        BreakSprings ->
+            world
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -434,6 +437,9 @@ runRenderSystem selected hovered world system =
             Svg.g [] []
 
         Gravity _ ->
+            Svg.g [] []
+
+        BreakSprings ->
             Svg.g [] []
 
 

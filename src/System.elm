@@ -1,5 +1,6 @@
 module System exposing
     ( System(..)
+    , breakSprings
     , constrain
     , force
     , gravity
@@ -22,6 +23,7 @@ type System
     | ConstrainParticles Boundary
     | Force Vector2
     | Gravity Vector2
+    | BreakSprings
 
 
 particles : System
@@ -59,6 +61,11 @@ gravity f =
     Gravity f
 
 
+breakSprings : System
+breakSprings =
+    BreakSprings
+
+
 toString : System -> String
 toString renderSystem =
     case renderSystem of
@@ -82,3 +89,6 @@ toString renderSystem =
 
         Gravity f ->
             "Gravity " ++ Vector2.toString f
+
+        BreakSprings ->
+            "BreakSprings"
