@@ -257,9 +257,9 @@ transform : Float -> Float -> Svg.Attribute msg
 transform x y =
     Svg.Attributes.transform <|
         "translate("
-            ++ String.fromFloat x
+            ++ String.fromInt (round x)
             ++ " "
-            ++ String.fromFloat y
+            ++ String.fromInt (round y)
             ++ ")"
 
 
