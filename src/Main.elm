@@ -302,10 +302,10 @@ viewConstraint strokeWidth particles ( ( from, to ), _ ) =
         ( Just origin, Just target ) ->
             Just <|
                 Svg.line
-                    [ Svg.Attributes.x1 <| String.fromFloat origin.position.x
-                    , Svg.Attributes.y1 <| String.fromFloat origin.position.y
-                    , Svg.Attributes.x2 <| String.fromFloat target.position.x
-                    , Svg.Attributes.y2 <| String.fromFloat target.position.y
+                    [ Svg.Attributes.x1 <| String.fromInt (round origin.position.x)
+                    , Svg.Attributes.y1 <| String.fromInt (round origin.position.y)
+                    , Svg.Attributes.x2 <| String.fromInt (round target.position.x)
+                    , Svg.Attributes.y2 <| String.fromInt (round target.position.y)
                     , Svg.Attributes.stroke "beige"
                     , Svg.Attributes.strokeWidth <| String.fromFloat strokeWidth
                     , Svg.Attributes.strokeLinecap "round"
