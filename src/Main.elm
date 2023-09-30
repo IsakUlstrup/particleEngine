@@ -22,6 +22,7 @@ import SidebarView
 import Svg exposing (Svg)
 import Svg.Attributes
 import Svg.Events
+import Svg.Keyed
 import System exposing (System(..))
 import Task
 
@@ -290,6 +291,11 @@ viewParticle selected hovered ( id, particle ) =
         []
 
 
+viewKeyedParticle : Maybe Int -> Maybe Int -> ( Int, Particle ) -> ( String, Svg Msg )
+viewKeyedParticle selected hovered ( id, particle ) =
+    ( String.fromInt id, viewParticle selected hovered ( id, particle ) )
+
+
 viewConstraint : Float -> Dict Int Particle -> ( ( Int, Int ), Spring ) -> Maybe (Svg Msg)
 viewConstraint strokeWidth particles ( ( from, to ), _ ) =
     case ( Dict.get from particles, Dict.get to particles ) of
@@ -482,7 +488,7 @@ runRenderSystem : Maybe Int -> Maybe Int -> World System -> System -> Svg Msg
 runRenderSystem selected hovered world system =
     case system of
         RenderParticles ->
-            Svg.g [] (Dict.toList world.particles |> List.map (viewParticle selected hovered))
+            Svg.Keyed.node "g" [] (Dict.toList world.particles |> List.map (viewKeyedParticle selected hovered))
 
         RenderParticleVelocity ->
             Svg.g [] (Dict.toList world.particles |> List.map viewParticleVelocity)
