@@ -127,9 +127,9 @@ runSystems f world =
         |> updateParticles (Particle.step world.stepTime)
 
 
-mapSystems : (a -> a) -> World a -> World a
+mapSystems : (Bool -> a -> a) -> World a -> World a
 mapSystems f world =
-    { world | systems = List.map (Tuple.mapSecond f) world.systems }
+    { world | systems = List.map (\( enabled, system ) -> ( enabled, f enabled system )) world.systems }
 
 
 

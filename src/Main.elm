@@ -132,8 +132,8 @@ runSystem system world =
                 world
 
 
-updateSystem : Float -> System -> System
-updateSystem dt system =
+updateSystem : Float -> Bool -> System -> System
+updateSystem dt enabled system =
     case system of
         ConstrainParticles _ ->
             system
@@ -160,11 +160,15 @@ updateSystem dt system =
             system
 
         SpawnParticle ( cd, maxCd ) particle ->
-            if cd <= 0 then
-                SpawnParticle ( maxCd, maxCd ) particle
+            if enabled then
+                if cd <= 0 then
+                    SpawnParticle ( maxCd, maxCd ) particle
+
+                else
+                    SpawnParticle ( max 0 (cd - dt), maxCd ) particle
 
             else
-                SpawnParticle ( max 0 (cd - dt), maxCd ) particle
+                system
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
