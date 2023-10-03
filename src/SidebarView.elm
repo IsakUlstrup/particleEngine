@@ -28,16 +28,16 @@ viewLabeledInput inputType inputValue labelValue inputMsg =
         ]
 
 
-viewLabeledNumberInput : String -> String -> (Float -> msg) -> Html msg
-viewLabeledNumberInput inputValue labelValue inputMsg =
+viewLabeledNumberInput : Float -> Float -> String -> (Float -> msg) -> Html msg
+viewLabeledNumberInput stepSize inputValue labelValue inputMsg =
     div [ class "labeled-input" ]
         [ label [ for labelValue ] [ text labelValue ]
         , input
             [ id labelValue
             , type_ "number"
             , onInput (String.toFloat >> Maybe.withDefault 0 >> inputMsg)
-            , value inputValue
-            , step "0.1"
+            , value (String.fromFloat inputValue)
+            , step (String.fromFloat stepSize)
             ]
             []
         ]

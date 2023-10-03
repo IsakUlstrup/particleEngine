@@ -14,6 +14,7 @@ module ParticleEngine.World exposing
     , setDtMulti
     , setParticleMass
     , setParticlePosition
+    , setStepTime
     , tick
     , toggleSystem
     , updateParticles
@@ -201,6 +202,11 @@ filterSprings predicate world =
 
 
 -- Timing
+
+
+setStepTime : Float -> World a -> World a
+setStepTime stepTime world =
+    { world | stepTime = stepTime }
 
 
 addDtHistory : Float -> World a -> World a

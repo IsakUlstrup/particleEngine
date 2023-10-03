@@ -80,6 +80,7 @@ type Msg
     | ToggleSystem Int
     | SetCameraZoom Float
     | SetCameraPosition Vector2
+    | SetStepTime Float
 
 
 runSystem : System -> World System -> World System
@@ -253,6 +254,9 @@ update msg model =
         SetCameraPosition position ->
             ( { model | renderConfig = Render.setPosition position model.renderConfig }, Cmd.none )
 
+        SetStepTime stepTime ->
+            ( { model | world = World.setStepTime stepTime model.world }, Cmd.none )
+
 
 
 -- VIEW
@@ -348,7 +352,7 @@ viewSidebarParticle selected hovered ( id, p ) =
         ]
         [ Html.text ("id: " ++ String.fromInt id)
         , SidebarView.viewVector2Input p.position (SetParticlePosition id)
-        , SidebarView.viewLabeledNumberInput (String.fromFloat p.mass) "Mass" (SetParticleMass id)
+        , SidebarView.viewLabeledNumberInput 1 p.mass "Mass" (SetParticleMass id)
         ]
 
 
@@ -368,8 +372,8 @@ viewSidebarStats model =
     )
 
 
-viewSidebarTimeControls : Float -> ( String, List (Html Msg) )
-viewSidebarTimeControls dtMulti =
+viewSidebarTimeControls : Float -> Float -> ( String, List (Html Msg) )
+viewSidebarTimeControls stepTime dtMulti =
     let
         timeButton : Float -> Html Msg
         timeButton n =
@@ -383,6 +387,7 @@ viewSidebarTimeControls dtMulti =
     in
     ( "Time"
     , [ SidebarView.buttonGroup [ timeButton 0, timeButton 0.5, timeButton 1 ]
+      , SidebarView.viewLabeledNumberInput 0.01 stepTime "Step Time" SetStepTime
       ]
     )
 
@@ -398,9 +403,9 @@ viewSidebarSprings springs =
         viewSpring ( ( from, to ), spring ) =
             Html.div []
                 [ Html.p [] [ Html.text <| String.fromInt from ++ ", " ++ String.fromInt to ]
-                , SidebarView.viewLabeledNumberInput (String.fromFloat spring.length) "Length" (\i -> SetSpring ( from, to ) (Spring.setLength i spring))
-                , SidebarView.viewLabeledNumberInput (String.fromFloat spring.rate) "Rate" (\i -> SetSpring ( from, to ) (Spring.setRate i spring))
-                , SidebarView.viewLabeledNumberInput (String.fromFloat spring.damping) "Damping" (\i -> SetSpring ( from, to ) (Spring.setDamping i spring))
+                , SidebarView.viewLabeledNumberInput 1 spring.length "Length" (\i -> SetSpring ( from, to ) (Spring.setLength i spring))
+                , SidebarView.viewLabeledNumberInput 1 spring.rate "Rate" (\i -> SetSpring ( from, to ) (Spring.setRate i spring))
+                , SidebarView.viewLabeledNumberInput 1 spring.damping "Damping" (\i -> SetSpring ( from, to ) (Spring.setDamping i spring))
                 ]
     in
     ( "Springs (" ++ (springList |> List.length |> String.fromInt) ++ ")", List.map viewSpring springList )
@@ -534,7 +539,7 @@ view model =
               )
             , ( "Camera", viewSidebarCamera model.renderConfig )
             , viewSidebarStats model
-            , viewSidebarTimeControls model.world.dtMultiplier
+            , viewSidebarTimeControls model.world.stepTime model.world.dtMultiplier
             , ( "Worlds"
               , model.worlds |> Dict.toList |> List.map viewSidebarWorld
               )
@@ -545,7 +550,7 @@ view model =
 
 viewSidebarCamera : RenderConfig -> List (Html Msg)
 viewSidebarCamera config =
-    [ SidebarView.viewLabeledNumberInput (String.fromFloat config.cameraZoom) "Zoom" SetCameraZoom
+    [ SidebarView.viewLabeledNumberInput 0.1 config.cameraZoom "Zoom" SetCameraZoom
     , SidebarView.viewVector2Input config.cameraPosition SetCameraPosition
     ]
 
