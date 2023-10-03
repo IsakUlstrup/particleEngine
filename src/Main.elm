@@ -80,7 +80,6 @@ type Msg
     | ToggleSystem Int
     | SetCameraZoom Float
     | SetCameraPosition Vector2
-    | SetStepTime Float
 
 
 runSystem : System -> World System -> World System
@@ -254,9 +253,6 @@ update msg model =
         SetCameraPosition position ->
             ( { model | renderConfig = Render.setPosition position model.renderConfig }, Cmd.none )
 
-        SetStepTime stepTime ->
-            ( { model | world = World.setStepTime stepTime model.world }, Cmd.none )
-
 
 
 -- VIEW
@@ -372,8 +368,8 @@ viewSidebarStats model =
     )
 
 
-viewSidebarTimeControls : Float -> Float -> ( String, List (Html Msg) )
-viewSidebarTimeControls stepTime dtMulti =
+viewSidebarTimeControls : Float -> ( String, List (Html Msg) )
+viewSidebarTimeControls dtMulti =
     let
         timeButton : Float -> Html Msg
         timeButton n =
@@ -387,7 +383,6 @@ viewSidebarTimeControls stepTime dtMulti =
     in
     ( "Time"
     , [ SidebarView.buttonGroup [ timeButton 0, timeButton 0.5, timeButton 1 ]
-      , SidebarView.viewLabeledNumberInput 0.01 stepTime "Step Time" SetStepTime
       ]
     )
 
@@ -539,7 +534,7 @@ view model =
               )
             , ( "Camera", viewSidebarCamera model.renderConfig )
             , viewSidebarStats model
-            , viewSidebarTimeControls model.world.stepTime model.world.dtMultiplier
+            , viewSidebarTimeControls model.world.dtMultiplier
             , ( "Worlds"
               , model.worlds |> Dict.toList |> List.map viewSidebarWorld
               )

@@ -14,7 +14,6 @@ module ParticleEngine.World exposing
     , setDtMulti
     , setParticleMass
     , setParticlePosition
-    , setStepTime
     , tick
     , toggleSystem
     , updateParticles
@@ -32,16 +31,22 @@ type alias World a =
     , idCounter : Int
     , springs : Dict ( Int, Int ) Spring
     , systems : List ( Bool, a )
-    , stepTime : Float
     , timeAccum : Float
     , dtMultiplier : Float
     , dtHistory : List Float
     }
 
 
+{-| Step time constant in seconds
+-}
+stepTime : Float
+stepTime =
+    0.02
+
+
 empty : World a
 empty =
-    World Dict.empty 0 Dict.empty [] 0.02 0 1 []
+    World Dict.empty 0 Dict.empty [] 0 1 []
 
 
 
@@ -125,7 +130,7 @@ runSystems : (a -> World a -> World a) -> World a -> World a
 runSystems f world =
     List.foldl f world (world.systems |> List.filter Tuple.first |> List.map Tuple.second)
         |> applySpringForces
-        |> updateParticles (Particle.step world.stepTime)
+        |> updateParticles (Particle.step stepTime)
 
 
 mapSystems : (Bool -> a -> a) -> World a -> World a
@@ -204,11 +209,6 @@ filterSprings predicate world =
 -- Timing
 
 
-setStepTime : Float -> World a -> World a
-setStepTime stepTime world =
-    { world | stepTime = stepTime }
-
-
 addDtHistory : Float -> World a -> World a
 addDtHistory dt world =
     { world | dtHistory = dt :: world.dtHistory |> List.take 20 }
@@ -233,8 +233,8 @@ fixedUpdate f dt world =
 
 updateModel : (World a -> World a) -> World a -> World a
 updateModel f world =
-    if world.timeAccum >= world.stepTime then
-        { world | timeAccum = world.timeAccum - world.stepTime }
+    if world.timeAccum >= stepTime then
+        { world | timeAccum = world.timeAccum - stepTime }
             |> f
             |> updateModel f
 
