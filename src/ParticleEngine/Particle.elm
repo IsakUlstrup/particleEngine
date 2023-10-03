@@ -24,22 +24,23 @@ radius =
 
 {-| A particle meant to be used with Verlet integration
 -}
-type alias Particle =
+type alias Particle a =
     { position : Vector2
     , oldPosition : Vector2
     , acceleration : Vector2
     , mass : Float
+    , components : List a
     }
 
 
 {-| Particle constructor
 -}
-new : Vector2 -> Float -> Particle
+new : Vector2 -> Float -> Particle a
 new position mass =
-    Particle position position Vector2.zero mass
+    Particle position position Vector2.zero mass []
 
 
-applyForce : Vector2 -> Particle -> Particle
+applyForce : Vector2 -> Particle a -> Particle a
 applyForce force particle =
     if particle.mass /= 0 then
         { particle | acceleration = Vector2.add particle.acceleration (Vector2.divide particle.mass force) }
@@ -48,7 +49,7 @@ applyForce force particle =
         particle
 
 
-applyGravity : Vector2 -> Particle -> Particle
+applyGravity : Vector2 -> Particle a -> Particle a
 applyGravity force particle =
     if particle.mass /= 0 then
         { particle | acceleration = Vector2.add particle.acceleration force }
@@ -59,14 +60,14 @@ applyGravity force particle =
 
 {-| Derive velocity vector based on old position
 -}
-velocity : Particle -> Vector2
+velocity : Particle a -> Vector2
 velocity particle =
     Vector2.subtract particle.oldPosition particle.position
 
 
 {-| Step forwards using Verlet integration
 -}
-step : Float -> Particle -> Particle
+step : Float -> Particle a -> Particle a
 step dt particle =
     { particle
         | position =
@@ -78,7 +79,7 @@ step dt particle =
     }
 
 
-constrain : Boundary -> Particle -> Particle
+constrain : Boundary -> Particle a -> Particle a
 constrain boundary particle =
     let
         vel : Vector2
@@ -113,12 +114,12 @@ constrain boundary particle =
         particle
 
 
-relativeVelocity : Particle -> Particle -> Vector2
+relativeVelocity : Particle a -> Particle a -> Vector2
 relativeVelocity target particle =
     Vector2.subtract (velocity target) (velocity particle)
 
 
-applySpringForce : Particle -> Spring -> Particle -> Particle
+applySpringForce : Particle a -> Spring -> Particle a -> Particle a
 applySpringForce from spring particle =
     let
         deltaDistance : Float

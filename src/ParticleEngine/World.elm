@@ -26,8 +26,8 @@ import ParticleEngine.Spring as Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 
 
-type alias World a =
-    { particles : Dict Int Particle
+type alias World a b =
+    { particles : Dict Int (Particle b)
     , idCounter : Int
     , springs : Dict ( Int, Int ) Spring
     , systems : List ( Bool, a )
@@ -44,7 +44,7 @@ stepTime =
     0.02
 
 
-empty : World a
+empty : World a b
 empty =
     World Dict.empty 0 Dict.empty [] 0 1 []
 
@@ -53,7 +53,7 @@ empty =
 -- PARTICLE
 
 
-addParticle : Particle -> World a -> World a
+addParticle : Particle b -> World a b -> World a b
 addParticle particle world =
     { world
         | particles = world.particles |> Dict.insert world.idCounter particle
@@ -61,30 +61,30 @@ addParticle particle world =
     }
 
 
-addParticles : List Particle -> World a -> World a
+addParticles : List (Particle b) -> World a b -> World a b
 addParticles particles world =
     List.foldl addParticle world particles
 
 
-updateParticles : (Particle -> Particle) -> World a -> World a
+updateParticles : (Particle b -> Particle b) -> World a b -> World a b
 updateParticles f world =
     { world | particles = Dict.map (\_ p -> f p) world.particles }
 
 
-setParticlePosition : Int -> Vector2 -> World a -> World a
+setParticlePosition : Int -> Vector2 -> World a b -> World a b
 setParticlePosition id position world =
     let
-        updatePosition : Particle -> Particle
+        updatePosition : Particle b -> Particle b
         updatePosition p =
             { p | position = position, oldPosition = position }
     in
     { world | particles = Dict.update id (Maybe.map updatePosition) world.particles }
 
 
-setParticleMass : Int -> Float -> World a -> World a
+setParticleMass : Int -> Float -> World a b -> World a b
 setParticleMass id mass world =
     let
-        updateMass : Particle -> Particle
+        updateMass : Particle b -> Particle b
         updateMass p =
             { p | mass = mass }
     in
@@ -93,7 +93,7 @@ setParticleMass id mass world =
 
 {-| Get distance between two particles if they exist
 -}
-particleDistance : Int -> Int -> World a -> Maybe Float
+particleDistance : Int -> Int -> World a b -> Maybe Float
 particleDistance from to world =
     case ( Dict.get from world.particles, Dict.get to world.particles ) of
         ( Just f, Just t ) ->
@@ -107,12 +107,12 @@ particleDistance from to world =
 -- SYSTEM
 
 
-addSystem : a -> Bool -> World a -> World a
+addSystem : a -> Bool -> World a b -> World a b
 addSystem system enabled world =
     { world | systems = ( enabled, system ) :: world.systems }
 
 
-toggleSystem : Int -> World a -> World a
+toggleSystem : Int -> World a b -> World a b
 toggleSystem index world =
     let
         toggleHelper : Int -> ( Bool, a ) -> ( Bool, a )
@@ -126,14 +126,14 @@ toggleSystem index world =
     { world | systems = List.indexedMap toggleHelper world.systems }
 
 
-runSystems : (a -> World a -> World a) -> World a -> World a
+runSystems : (a -> World a b -> World a b) -> World a b -> World a b
 runSystems f world =
     List.foldl f world (world.systems |> List.filter Tuple.first |> List.map Tuple.second)
         |> applySpringForces
         |> updateParticles (Particle.step stepTime)
 
 
-mapSystems : (Bool -> a -> a) -> World a -> World a
+mapSystems : (Bool -> a -> a) -> World a b -> World a b
 mapSystems f world =
     { world | systems = List.map (\( enabled, system ) -> ( enabled, f enabled system )) world.systems }
 
@@ -144,7 +144,7 @@ mapSystems f world =
 
 {-| Add spring between two particles, length will be calculated based on current distance between the particles
 -}
-addAutoSpring : Int -> Int -> Float -> Float -> World a -> World a
+addAutoSpring : Int -> Int -> Float -> Float -> World a b -> World a b
 addAutoSpring from to springRate damping world =
     case particleDistance from to world of
         Just dist ->
@@ -154,7 +154,7 @@ addAutoSpring from to springRate damping world =
             world
 
 
-addSpring : Int -> Int -> Spring -> World a -> World a
+addSpring : Int -> Int -> Spring -> World a b -> World a b
 addSpring from to spring world =
     case particleDistance from to world of
         Just _ ->
@@ -164,7 +164,7 @@ addSpring from to spring world =
             world
 
 
-removeSpring : ( Int, Int ) -> World a -> World a
+removeSpring : ( Int, Int ) -> World a b -> World a b
 removeSpring constraint world =
     let
         keepConstraint : ( Int, Int ) -> Spring -> Bool
@@ -174,12 +174,12 @@ removeSpring constraint world =
     { world | springs = Dict.filter keepConstraint world.springs }
 
 
-updateSpring : ( Int, Int ) -> (Spring -> Spring) -> World a -> World a
+updateSpring : ( Int, Int ) -> (Spring -> Spring) -> World a b -> World a b
 updateSpring connections f world =
     { world | springs = Dict.update connections (Maybe.map f) world.springs }
 
 
-constrainPair : ( ( Int, Int ), Spring ) -> Dict Int Particle -> Dict Int Particle
+constrainPair : ( ( Int, Int ), Spring ) -> Dict Int (Particle b) -> Dict Int (Particle b)
 constrainPair ( ( from, to ), spring ) particles =
     case ( Dict.get from particles, Dict.get to particles ) of
         ( Just origin, Just target ) ->
@@ -195,12 +195,12 @@ constrainPair ( ( from, to ), spring ) particles =
             particles
 
 
-applySpringForces : World a -> World a
+applySpringForces : World a b -> World a b
 applySpringForces world =
     { world | particles = List.foldl constrainPair world.particles (Dict.toList world.springs) }
 
 
-filterSprings : (( Int, Int ) -> Spring -> Bool) -> World a -> World a
+filterSprings : (( Int, Int ) -> Spring -> Bool) -> World a b -> World a b
 filterSprings predicate world =
     { world | springs = world.springs |> Dict.filter predicate }
 
@@ -209,17 +209,17 @@ filterSprings predicate world =
 -- Timing
 
 
-addDtHistory : Float -> World a -> World a
+addDtHistory : Float -> World a b -> World a b
 addDtHistory dt world =
     { world | dtHistory = dt :: world.dtHistory |> List.take 20 }
 
 
-setDtMulti : Float -> World a -> World a
+setDtMulti : Float -> World a b -> World a b
 setDtMulti multi world =
     { world | dtMultiplier = multi }
 
 
-fixedUpdate : (World a -> World a) -> Float -> World a -> World a
+fixedUpdate : (World a b -> World a b) -> Float -> World a b -> World a b
 fixedUpdate f dt world =
     let
         adjustedDt : Float
@@ -231,7 +231,7 @@ fixedUpdate f dt world =
         |> updateModel f
 
 
-updateModel : (World a -> World a) -> World a -> World a
+updateModel : (World a b -> World a b) -> World a b -> World a b
 updateModel f world =
     if world.timeAccum >= stepTime then
         { world | timeAccum = world.timeAccum - stepTime }
@@ -247,11 +247,11 @@ averageDelta dts =
     List.sum dts / toFloat (List.length dts)
 
 
-averageFps : World a -> Float
+averageFps : World a b -> Float
 averageFps world =
     1000 / averageDelta world.dtHistory
 
 
-tick : Float -> (a -> World a -> World a) -> World a -> World a
+tick : Float -> (a -> World a b -> World a b) -> World a b -> World a b
 tick dt f world =
     fixedUpdate (runSystems f) dt world

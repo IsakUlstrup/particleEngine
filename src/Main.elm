@@ -32,8 +32,8 @@ import Task
 
 
 type alias Model =
-    { world : World System
-    , worlds : Dict String (World System)
+    { world : World System ()
+    , worlds : Dict String (World System ())
     , renderConfig : RenderConfig
     , selected : Maybe Int
     , hoverParticle : Maybe Int
@@ -75,14 +75,14 @@ type Msg
     | ClickedConstraint ( Int, Int )
     | SetDtMultiplier Float
     | HoverExitParticle
-    | SetWorld (World System)
+    | SetWorld (World System ())
     | SetSpring ( Int, Int ) Spring
     | ToggleSystem Int
     | SetCameraZoom Float
     | SetCameraPosition Vector2
 
 
-runSystem : System -> World System -> World System
+runSystem : System -> World System () -> World System ()
 runSystem system world =
     case system of
         ConstrainParticles b ->
@@ -278,7 +278,7 @@ svgClassList classes =
         |> Svg.Attributes.class
 
 
-viewParticle : Maybe Int -> Maybe Int -> ( Int, Particle ) -> Svg Msg
+viewParticle : Maybe Int -> Maybe Int -> ( Int, Particle () ) -> Svg Msg
 viewParticle selected hovered ( id, particle ) =
     Svg.circle
         [ transform particle.position.x particle.position.y
@@ -296,12 +296,12 @@ viewParticle selected hovered ( id, particle ) =
         []
 
 
-viewKeyedParticle : Maybe Int -> Maybe Int -> ( Int, Particle ) -> ( String, Svg Msg )
+viewKeyedParticle : Maybe Int -> Maybe Int -> ( Int, Particle () ) -> ( String, Svg Msg )
 viewKeyedParticle selected hovered ( id, particle ) =
     ( String.fromInt id, viewParticle selected hovered ( id, particle ) )
 
 
-viewConstraint : Float -> Dict Int Particle -> ( ( Int, Int ), Spring ) -> Maybe (Svg Msg)
+viewConstraint : Float -> Dict Int (Particle ()) -> ( ( Int, Int ), Spring ) -> Maybe (Svg Msg)
 viewConstraint strokeWidth particles ( ( from, to ), _ ) =
     case ( Dict.get from particles, Dict.get to particles ) of
         ( Just origin, Just target ) ->
@@ -334,7 +334,7 @@ maybeEq n mn =
             False
 
 
-viewSidebarParticle : Maybe Int -> Maybe Int -> ( Int, Particle ) -> Html Msg
+viewSidebarParticle : Maybe Int -> Maybe Int -> ( Int, Particle () ) -> Html Msg
 viewSidebarParticle selected hovered ( id, p ) =
     Html.div
         [ Html.Events.onClick (ClickedParticle id)
@@ -355,7 +355,7 @@ viewSidebarParticle selected hovered ( id, p ) =
 viewSidebarStats : Model -> ( String, List (Html Msg) )
 viewSidebarStats model =
     let
-        fpsString : World a -> String
+        fpsString : World a b -> String
         fpsString world =
             World.averageFps world
                 |> String.fromFloat
@@ -406,7 +406,7 @@ viewSidebarSprings springs =
     ( "Springs (" ++ (springList |> List.length |> String.fromInt) ++ ")", List.map viewSpring springList )
 
 
-viewSidebarWorld : ( String, World System ) -> Html Msg
+viewSidebarWorld : ( String, World System () ) -> Html Msg
 viewSidebarWorld ( name, world ) =
     Html.input
         [ Html.Attributes.type_ "button"
@@ -444,7 +444,7 @@ viewSidebarSystem index ( enabled, system ) =
         ]
 
 
-viewParticleVelocity : ( Int, Particle ) -> Svg msg
+viewParticleVelocity : ( Int, Particle () ) -> Svg msg
 viewParticleVelocity ( _, particle ) =
     let
         scaledVelocity : Vector2
@@ -464,7 +464,7 @@ viewParticleVelocity ( _, particle ) =
         []
 
 
-viewSpringStress : Dict Int Particle -> ( ( Int, Int ), Spring ) -> Maybe (Svg Msg)
+viewSpringStress : Dict Int (Particle ()) -> ( ( Int, Int ), Spring ) -> Maybe (Svg Msg)
 viewSpringStress particles ( ( from, to ), spring ) =
     let
         color : Float -> String
@@ -490,7 +490,7 @@ viewSpringStress particles ( ( from, to ), spring ) =
             Nothing
 
 
-runRenderSystem : Maybe Int -> Maybe Int -> World System -> System -> Maybe (Svg Msg)
+runRenderSystem : Maybe Int -> Maybe Int -> World System () -> System -> Maybe (Svg Msg)
 runRenderSystem selected hovered world system =
     case system of
         RenderParticles ->
