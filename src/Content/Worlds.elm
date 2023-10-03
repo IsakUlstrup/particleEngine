@@ -14,7 +14,7 @@ gravityForce =
     Vector2.new 0 1000
 
 
-rope : World System
+rope : World System ()
 rope =
     World.empty
         |> World.addSystem (System.springs 10) False
@@ -48,12 +48,12 @@ rope =
         |> World.addAutoSpring 11 12 1000 100
 
 
-ringSpring : Int -> Int -> World a -> World a
+ringSpring : Int -> Int -> World a b -> World a b
 ringSpring from to =
     World.addAutoSpring from to 100 5
 
 
-ball : World System
+ball : World System ()
 ball =
     World.empty
         |> World.addSystem System.particles True
@@ -101,7 +101,7 @@ ball =
         |> World.addAutoSpring 3 6 100 10
 
 
-bridge : World System
+bridge : World System ()
 bridge =
     World.empty
         |> World.addSystem System.particles True
@@ -134,7 +134,7 @@ bridge =
         |> World.addAutoSpring 11 12 1000 100
 
 
-gravity : World System
+gravity : World System ()
 gravity =
     World.empty
         |> World.addSystem System.particleVelocity True
@@ -153,7 +153,7 @@ clothSpring =
     Spring.new 50 500 100
 
 
-cloth : World System
+cloth : World System ()
 cloth =
     World.empty
         |> World.addSystem System.springStress True
@@ -239,7 +239,7 @@ cloth =
         |> World.addSpring 27 28 clothSpring
 
 
-spawn : World System
+spawn : World System ()
 spawn =
     World.empty
         |> World.addSystem (System.spawnParticle 200 (Particle.new (Vector2.new -470 -470) 1 |> Particle.applyForce (Vector2.new 6000 0))) True

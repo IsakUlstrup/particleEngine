@@ -4,7 +4,7 @@ import ParticleEngine.Particle as Particle exposing (Particle)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
 
 
-nGon : Vector2 -> Int -> Float -> List Particle
+nGon : Vector2 -> Int -> Float -> List (Particle a)
 nGon center points radius =
     let
         angle : Int -> Float
@@ -17,7 +17,7 @@ nGon center points radius =
                 |> Vector2.scale radius
                 |> Vector2.add center
 
-        newParticle : Int -> Particle
+        newParticle : Int -> Particle a
         newParticle index =
             Particle.new (position index) 1
     in

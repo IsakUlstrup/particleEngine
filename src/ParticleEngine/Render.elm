@@ -65,7 +65,7 @@ cameraTransform config =
             ++ ")"
 
 
-viewWorld : (World a -> a -> Maybe (Svg msg)) -> RenderConfig -> World a -> Svg msg
+viewWorld : (World a b -> a -> Maybe (Svg msg)) -> RenderConfig -> World a b -> Svg msg
 viewWorld runSystem config world =
     Svg.svg
         [ viewBox config

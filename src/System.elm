@@ -26,7 +26,7 @@ type System
     | Force Vector2
     | Gravity Vector2
     | BreakSprings
-    | SpawnParticle ( Float, Float ) Particle
+    | SpawnParticle ( Float, Float ) (Particle ())
 
 
 particles : System
@@ -69,7 +69,7 @@ breakSprings =
     BreakSprings
 
 
-spawnParticle : Float -> Particle -> System
+spawnParticle : Float -> Particle () -> System
 spawnParticle cooldown particle =
     SpawnParticle ( cooldown, cooldown ) particle
 
