@@ -35,7 +35,6 @@ type alias Model =
     { world : World System ()
     , worlds : Dict String (World System ())
     , renderConfig : RenderConfig
-    , selected : Maybe Int
     , hoverParticle : Maybe Int
     }
 
@@ -55,7 +54,6 @@ init _ =
         )
         (RenderConfig 1000 1000 0.7 Vector2.zero)
         Nothing
-        Nothing
     , gameResize
     )
 
@@ -70,7 +68,6 @@ type Msg
     | SetParticleMass Int Float
     | WindowResize
     | GameViewResized (Result Browser.Dom.Error Browser.Dom.Element)
-    | ClickedParticle Int
     | HoverParticle Int
     | ClickedConstraint ( Int, Int )
     | SetDtMultiplier Float
@@ -162,26 +159,6 @@ update msg model =
         GameViewResized (Err _) ->
             ( model, Cmd.none )
 
-        ClickedParticle id ->
-            let
-                toggle : Model -> Model
-                toggle m =
-                    case m.selected of
-                        Just selected ->
-                            if selected == id then
-                                { m | selected = Nothing }
-
-                            else
-                                { m
-                                    | world = World.addAutoSpring id selected 100 100 m.world
-                                    , selected = Nothing
-                                }
-
-                        Nothing ->
-                            { m | selected = Just id }
-            in
-            ( toggle model, Cmd.none )
-
         HoverParticle id ->
             ( { model | hoverParticle = Just id }, Cmd.none )
 
@@ -234,27 +211,22 @@ svgClassList classes =
         |> Svg.Attributes.class
 
 
-viewParticle : Maybe Int -> Maybe Int -> ( Int, Particle () ) -> Svg Msg
-viewParticle selected hovered ( id, particle ) =
+viewParticle : Maybe Int -> ( Int, Particle () ) -> Svg Msg
+viewParticle hovered ( id, particle ) =
     Svg.circle
         [ transform particle.position.x particle.position.y
         , Svg.Attributes.r <| String.fromInt (round Particle.radius)
-
-        -- , Svg.Events.onClick <| ClickedParticle id
-        -- , Svg.Events.onMouseOver <| HoverParticle id
-        -- , Svg.Events.onMouseOut <| HoverExitParticle
         , svgClassList
-            [ ( "selected", maybeEq id selected )
-            , ( "hover", maybeEq id hovered )
+            [ ( "hover", maybeEq id hovered )
             , ( "particle", True )
             ]
         ]
         []
 
 
-viewKeyedParticle : Maybe Int -> Maybe Int -> ( Int, Particle () ) -> ( String, Svg Msg )
-viewKeyedParticle selected hovered ( id, particle ) =
-    ( String.fromInt id, viewParticle selected hovered ( id, particle ) )
+viewKeyedParticle : Maybe Int -> ( Int, Particle () ) -> ( String, Svg Msg )
+viewKeyedParticle hovered ( id, particle ) =
+    ( String.fromInt id, viewParticle hovered ( id, particle ) )
 
 
 viewConstraint : Float -> Dict Int (Particle ()) -> ( ( Int, Int ), Spring ) -> Maybe (Svg Msg)
@@ -290,15 +262,13 @@ maybeEq n mn =
             False
 
 
-viewSidebarParticle : Maybe Int -> Maybe Int -> ( Int, Particle () ) -> Html Msg
-viewSidebarParticle selected hovered ( id, p ) =
+viewSidebarParticle : Maybe Int -> ( Int, Particle () ) -> Html Msg
+viewSidebarParticle hovered ( id, p ) =
     Html.div
-        [ Html.Events.onClick (ClickedParticle id)
-        , Html.Events.onMouseOver (HoverParticle id)
+        [ Html.Events.onMouseOver (HoverParticle id)
         , Html.Events.onMouseOut HoverExitParticle
         , Html.Attributes.classList
-            [ ( "selected", maybeEq id selected )
-            , ( "hover", maybeEq id hovered )
+            [ ( "hover", maybeEq id hovered )
             , ( "particle", True )
             ]
         ]
@@ -456,11 +426,11 @@ viewSpringStress particles ( ( from, to ), spring ) =
             Nothing
 
 
-runRenderSystem : Maybe Int -> Maybe Int -> World System () -> System -> Maybe (Svg Msg)
-runRenderSystem selected hovered world system =
+runRenderSystem : Maybe Int -> World System () -> System -> Maybe (Svg Msg)
+runRenderSystem hovered world system =
     case system of
         RenderParticles ->
-            Svg.Keyed.node "g" [] (World.mapParticles (viewKeyedParticle selected hovered) world) |> Just
+            Svg.Keyed.node "g" [] (World.mapParticles (viewKeyedParticle hovered) world) |> Just
 
         RenderParticleVelocity ->
             Svg.g [] (World.mapParticles viewParticleVelocity world) |> Just
@@ -492,7 +462,7 @@ view model =
     main_ [ Html.Attributes.id "app" ]
         [ SidebarView.viewSidebar
             [ ( "Particles (" ++ (World.mapParticles identity model.world |> List.length |> String.fromInt) ++ ")"
-              , World.mapParticles (viewSidebarParticle model.selected model.hoverParticle) model.world
+              , World.mapParticles (viewSidebarParticle model.hoverParticle) model.world
               )
             , ( "Springs (" ++ (World.mapSprings identity model.world |> List.length |> String.fromInt) ++ ")"
               , World.mapSprings viewSpring model.world
@@ -507,7 +477,7 @@ view model =
               , model.worlds |> Dict.toList |> List.map viewSidebarWorld
               )
             ]
-        , Render.viewWorld (runRenderSystem model.selected model.hoverParticle) model.renderConfig model.world
+        , Render.viewWorld (runRenderSystem model.hoverParticle) model.renderConfig model.world
         ]
 
 
