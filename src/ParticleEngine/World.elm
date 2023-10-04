@@ -99,22 +99,12 @@ mapParticles f (World world) =
 
 setParticlePosition : Int -> Vector2 -> World a b -> World a b
 setParticlePosition id position (World world) =
-    let
-        updatePosition : Particle b -> Particle b
-        updatePosition p =
-            { p | position = position, oldPosition = position }
-    in
-    World { world | particles = Dict.update id (Maybe.map updatePosition) world.particles }
+    World { world | particles = Dict.update id (Maybe.map (Particle.setPosition position)) world.particles }
 
 
 setParticleMass : Int -> Float -> World a b -> World a b
 setParticleMass id mass (World world) =
-    let
-        updateMass : Particle b -> Particle b
-        updateMass p =
-            { p | mass = mass }
-    in
-    World { world | particles = Dict.update id (Maybe.map updateMass) world.particles }
+    World { world | particles = Dict.update id (Maybe.map (Particle.setMass mass)) world.particles }
 
 
 {-| Get distance between two particles if they exist
@@ -224,25 +214,9 @@ updateSpring connections f (World world) =
     World { world | springs = Dict.update connections (Maybe.map f) world.springs }
 
 
-constrainPair : ( ( Int, Int ), Spring ) -> Dict Int (Particle b) -> Dict Int (Particle b)
-constrainPair ( ( from, to ), spring ) particles =
-    case ( Dict.get from particles, Dict.get to particles ) of
-        ( Just origin, Just target ) ->
-            let
-                ( p1, p2 ) =
-                    ( Particle.applySpringForce target spring origin, Particle.applySpringForce origin spring target )
-            in
-            particles
-                |> Dict.insert from p1
-                |> Dict.insert to p2
-
-        _ ->
-            particles
-
-
 applySpringForces : World a b -> World a b
 applySpringForces (World world) =
-    World { world | particles = List.foldl constrainPair world.particles (Dict.toList world.springs) }
+    World { world | particles = List.foldl Particle.enforceSpring world.particles (Dict.toList world.springs) }
 
 
 filterSprings : (( Int, Int ) -> Spring -> Bool) -> World a b -> World a b

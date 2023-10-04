@@ -4,12 +4,16 @@ module ParticleEngine.Particle exposing
     , applyGravity
     , applySpringForce
     , constrain
+    , enforceSpring
     , new
     , radius
+    , setMass
+    , setPosition
     , step
     , velocity
     )
 
+import Dict exposing (Dict)
 import ParticleEngine.Boundary as Boundary exposing (Boundary)
 import ParticleEngine.Spring exposing (Spring)
 import ParticleEngine.Vector2 as Vector2 exposing (Vector2)
@@ -63,6 +67,16 @@ applyGravity force particle =
 velocity : Particle a -> Vector2
 velocity particle =
     Vector2.subtract particle.oldPosition particle.position
+
+
+setPosition : Vector2 -> Particle a -> Particle a
+setPosition position particle =
+    { particle | position = position, oldPosition = Vector2.subtract (velocity particle) position }
+
+
+setMass : Float -> Particle a -> Particle a
+setMass mass particle =
+    { particle | mass = max 0 mass }
 
 
 {-| Step forwards using Verlet integration
@@ -144,3 +158,19 @@ applySpringForce from spring particle =
             Vector2.add force damperForce
     in
     applyForce sumForces particle
+
+
+enforceSpring : ( ( Int, Int ), Spring ) -> Dict Int (Particle b) -> Dict Int (Particle b)
+enforceSpring ( ( from, to ), spring ) particles =
+    case ( Dict.get from particles, Dict.get to particles ) of
+        ( Just origin, Just target ) ->
+            let
+                ( p1, p2 ) =
+                    ( applySpringForce target spring origin, applySpringForce origin spring target )
+            in
+            particles
+                |> Dict.insert from p1
+                |> Dict.insert to p2
+
+        _ ->
+            particles
