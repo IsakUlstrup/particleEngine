@@ -8,7 +8,7 @@ module ParticleEngine.Render exposing
     )
 
 import ParticleEngine.Vector2 exposing (Vector2)
-import ParticleEngine.World exposing (World)
+import ParticleEngine.World as World exposing (World)
 import Svg exposing (Svg)
 import Svg.Attributes
 
@@ -75,9 +75,5 @@ viewWorld runSystem config world =
             [ Svg.Attributes.class "camera"
             , cameraTransform config
             ]
-            (world.systems
-                |> List.filter Tuple.first
-                |> List.map Tuple.second
-                |> List.filterMap (runSystem world)
-            )
+            (World.runRenderSystems runSystem world)
         ]

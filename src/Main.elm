@@ -132,55 +132,11 @@ runSystem system world =
                 world
 
 
-updateSystem : Float -> Bool -> System -> System
-updateSystem dt enabled system =
-    case system of
-        ConstrainParticles _ ->
-            system
-
-        RenderParticles ->
-            system
-
-        RenderParticleVelocity ->
-            system
-
-        RenderSprings _ ->
-            system
-
-        RenderSpringStress ->
-            system
-
-        Force _ ->
-            system
-
-        Gravity _ ->
-            system
-
-        BreakSprings ->
-            system
-
-        SpawnParticle ( cd, maxCd ) particle ->
-            if enabled then
-                if cd <= 0 then
-                    SpawnParticle ( maxCd, maxCd ) particle
-
-                else
-                    SpawnParticle ( max 0 (cd - dt), maxCd ) particle
-
-            else
-                system
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick dt ->
-            ( { model
-                | world =
-                    model.world
-                        |> World.mapSystems (updateSystem dt)
-                        |> World.tick dt runSystem
-              }
+            ( { model | world = World.tick dt runSystem model.world }
             , Cmd.none
             )
 
@@ -387,23 +343,33 @@ viewSidebarTimeControls dtMulti =
     )
 
 
-viewSidebarSprings : Dict ( Int, Int ) Spring -> ( String, List (Html Msg) )
-viewSidebarSprings springs =
-    let
-        springList : List ( ( Int, Int ), Spring )
-        springList =
-            Dict.toList springs
+viewSpring : ( ( Int, Int ), Spring ) -> Html Msg
+viewSpring ( ( from, to ), spring ) =
+    Html.div []
+        [ Html.p [] [ Html.text <| String.fromInt from ++ ", " ++ String.fromInt to ]
+        , SidebarView.viewLabeledNumberInput 1 spring.length "Length" (\i -> SetSpring ( from, to ) (Spring.setLength i spring))
+        , SidebarView.viewLabeledNumberInput 1 spring.rate "Rate" (\i -> SetSpring ( from, to ) (Spring.setRate i spring))
+        , SidebarView.viewLabeledNumberInput 1 spring.damping "Damping" (\i -> SetSpring ( from, to ) (Spring.setDamping i spring))
+        ]
 
-        viewSpring : ( ( Int, Int ), Spring ) -> Html Msg
-        viewSpring ( ( from, to ), spring ) =
-            Html.div []
-                [ Html.p [] [ Html.text <| String.fromInt from ++ ", " ++ String.fromInt to ]
-                , SidebarView.viewLabeledNumberInput 1 spring.length "Length" (\i -> SetSpring ( from, to ) (Spring.setLength i spring))
-                , SidebarView.viewLabeledNumberInput 1 spring.rate "Rate" (\i -> SetSpring ( from, to ) (Spring.setRate i spring))
-                , SidebarView.viewLabeledNumberInput 1 spring.damping "Damping" (\i -> SetSpring ( from, to ) (Spring.setDamping i spring))
-                ]
-    in
-    ( "Springs (" ++ (springList |> List.length |> String.fromInt) ++ ")", List.map viewSpring springList )
+
+
+-- viewSidebarSprings : Dict ( Int, Int ) Spring -> ( String, List (Html Msg) )
+-- viewSidebarSprings springs =
+--     let
+--         springList : List ( ( Int, Int ), Spring )
+--         springList =
+--             Dict.toList springs
+--         viewSpring : ( ( Int, Int ), Spring ) -> Html Msg
+--         viewSpring ( ( from, to ), spring ) =
+--             Html.div []
+--                 [ Html.p [] [ Html.text <| String.fromInt from ++ ", " ++ String.fromInt to ]
+--                 , SidebarView.viewLabeledNumberInput 1 spring.length "Length" (\i -> SetSpring ( from, to ) (Spring.setLength i spring))
+--                 , SidebarView.viewLabeledNumberInput 1 spring.rate "Rate" (\i -> SetSpring ( from, to ) (Spring.setRate i spring))
+--                 , SidebarView.viewLabeledNumberInput 1 spring.damping "Damping" (\i -> SetSpring ( from, to ) (Spring.setDamping i spring))
+--                 ]
+--     in
+--     ( "Springs (" ++ (springList |> List.length |> String.fromInt) ++ ")", List.map viewSpring springList )
 
 
 viewSidebarWorld : ( String, World System () ) -> Html Msg
@@ -430,8 +396,8 @@ viewParticleBounds boundary =
         []
 
 
-viewSidebarSystem : Int -> ( Bool, System ) -> Html Msg
-viewSidebarSystem index ( enabled, system ) =
+viewSidebarSystem : Int -> Bool -> System -> Html Msg
+viewSidebarSystem index enabled system =
     Html.div [ Html.Attributes.class "labeled-checkbox" ]
         [ Html.input
             [ Html.Attributes.type_ "checkbox"
@@ -494,16 +460,16 @@ runRenderSystem : Maybe Int -> Maybe Int -> World System () -> System -> Maybe (
 runRenderSystem selected hovered world system =
     case system of
         RenderParticles ->
-            Svg.Keyed.node "g" [] (Dict.toList world.particles |> List.map (viewKeyedParticle selected hovered)) |> Just
+            Svg.Keyed.node "g" [] (World.mapParticles (viewKeyedParticle selected hovered) world) |> Just
 
         RenderParticleVelocity ->
-            Svg.g [] (Dict.toList world.particles |> List.map viewParticleVelocity) |> Just
+            Svg.g [] (World.mapParticles viewParticleVelocity world) |> Just
 
         RenderSprings width ->
-            Svg.g [] (Dict.toList world.springs |> List.filterMap (viewConstraint width world.particles)) |> Just
+            Svg.g [] (World.filterMapSprings (viewConstraint width (World.getParticles world)) world) |> Just
 
         RenderSpringStress ->
-            Svg.g [] (Dict.toList world.springs |> List.filterMap (viewSpringStress world.particles)) |> Just
+            Svg.g [] (World.filterMapSprings (viewSpringStress (World.getParticles world)) world) |> Just
 
         ConstrainParticles b ->
             viewParticleBounds b |> Just
@@ -525,16 +491,18 @@ view : Model -> Html Msg
 view model =
     main_ [ Html.Attributes.id "app" ]
         [ SidebarView.viewSidebar
-            [ ( "Particles (" ++ (Dict.toList model.world.particles |> List.length |> String.fromInt) ++ ")"
-              , model.world.particles |> Dict.toList |> List.map (viewSidebarParticle model.selected model.hoverParticle)
+            [ ( "Particles (" ++ (World.mapParticles identity model.world |> List.length |> String.fromInt) ++ ")"
+              , World.mapParticles (viewSidebarParticle model.selected model.hoverParticle) model.world
               )
-            , viewSidebarSprings model.world.springs
-            , ( "Systems (" ++ (model.world.systems |> List.length |> String.fromInt) ++ ")"
-              , model.world.systems |> List.indexedMap viewSidebarSystem
+            , ( "Springs (" ++ (World.mapSprings identity model.world |> List.length |> String.fromInt) ++ ")"
+              , World.mapSprings viewSpring model.world
+              )
+            , ( "Systems"
+              , World.indexedMapSystems viewSidebarSystem model.world
               )
             , ( "Camera", viewSidebarCamera model.renderConfig )
             , viewSidebarStats model
-            , viewSidebarTimeControls model.world.dtMultiplier
+            , viewSidebarTimeControls (World.getDtMulti model.world)
             , ( "Worlds"
               , model.worlds |> Dict.toList |> List.map viewSidebarWorld
               )
